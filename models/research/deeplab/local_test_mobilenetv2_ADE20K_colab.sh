@@ -30,11 +30,10 @@ set -e
 cd ..
 
 # Update PYTHONPATH.
-CURRENT_DIR="/content/models/models/research"
-export PYTHONPATH=$PYTHONPATH:`${CURRENT_DIR}`:`${CURRENT_DIR}`/slim
+export PYTHONPATH=$PYTHONPATH:/content/models/models/research:/content/models/models/research/slim
 
 # Set up the working environment.
-
+CURRENT_DIR="/content/models/models/research"
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
