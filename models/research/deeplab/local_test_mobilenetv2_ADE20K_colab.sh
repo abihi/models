@@ -37,12 +37,12 @@ CURRENT_DIR="/content/models/models/research"
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
-###python "${WORK_DIR}"/model_test.py -v
+python "${WORK_DIR}"/model_test.py -v
 
 # Go to datasets folder and download ADE20K segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-###sh download_and_convert_ade20k.sh
+sh download_and_convert_ade20k.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
