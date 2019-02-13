@@ -81,7 +81,7 @@ python "${WORK_DIR}"/train.py \
   --output_stride=16 \
   --train_crop_size=513 \
   --train_crop_size=513 \
-  --train_batch_size=4 \
+  --train_batch_size=1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
