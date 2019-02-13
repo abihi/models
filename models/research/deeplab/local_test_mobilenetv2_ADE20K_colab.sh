@@ -37,12 +37,12 @@ CURRENT_DIR="/content/models/models/research"
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
-python "${WORK_DIR}"/model_test.py -v
+###python "${WORK_DIR}"/model_test.py -v
 
 # Go to datasets folder and download ADE20K segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-sh download_and_convert_ade20k.sh
+###sh download_and_convert_ade20k.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
@@ -73,7 +73,7 @@ cd "${CURRENT_DIR}"
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 # Train 10 iterations.
-NUM_ITERATIONS=10
+NUM_ITERATIONS=130000
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
