@@ -85,7 +85,7 @@ python "${WORK_DIR}"/train.py \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
-  --fine_tune_batch_norm=true \
+  --fine_tune_batch_norm=false \
   --min_resize_value=350 \
   --max_resize_value=500 \
   --resize_factor=16 \
@@ -128,7 +128,7 @@ python "${WORK_DIR}"/export_model.py \
   --checkpoint_path="${CKPT_PATH}" \
   --export_path="${EXPORT_PATH}" \
   --model_variant="mobilenet_v2" \
-  --num_classes=151 \
+  --num_classes=150 \
   --crop_size=513 \
   --crop_size=513 \
   --inference_scales=1.0
