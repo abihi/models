@@ -98,7 +98,7 @@ flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
 # When fine_tune_batch_norm=True, use at least batch size larger than 12
 # (batch size more than 16 is better). Otherwise, one could use smaller batch
 # size and set fine_tune_batch_norm=False.
-flags.DEFINE_integer('train_batch_size', 8,
+flags.DEFINE_integer('train_batch_size', 4,
                      'The number of images in each batch during training.')
 
 # For weight_decay, use 0.00004 for MobileNet-V2 or Xcpetion model variants.
@@ -122,10 +122,10 @@ flags.DEFINE_string('tf_initial_checkpoint', None,
                     'The initial checkpoint in tensorflow format.')
 
 # Set to False if one does not want to re-use the trained classifier weights.
-flags.DEFINE_boolean('initialize_last_layer', True,
+flags.DEFINE_boolean('initialize_last_layer', False,
                      'Initialize the last layer.')
 
-flags.DEFINE_boolean('last_layers_contain_logits_only', False,
+flags.DEFINE_boolean('last_layers_contain_logits_only', True,
                      'Only consider logits as last layers or not.')
 
 flags.DEFINE_integer('slow_start_step', 0,
@@ -136,7 +136,7 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Set to True if one wants to fine-tune the batch norm parameters in DeepLabv3.
 # Set to False and use small batch size to save GPU memory.
-flags.DEFINE_boolean('fine_tune_batch_norm', True,
+flags.DEFINE_boolean('fine_tune_batch_norm', False,
                      'Fine tune the batch norm parameters or not.')
 
 flags.DEFINE_float('min_scale_factor', 0.5,

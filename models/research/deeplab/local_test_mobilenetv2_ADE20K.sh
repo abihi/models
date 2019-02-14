@@ -37,18 +37,18 @@ CURRENT_DIR=$(pwd)
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
-####python "${WORK_DIR}"/model_test.py -v
+python "${WORK_DIR}"/model_test.py -v
 
-# Go to datasets folder and download ADE20K VOC 2012 segmentation dataset.
+# Go to datasets folder and download ADE20K segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-###sh download_and_convert_ade20k.sh
+sh download_and_convert_ade20k.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
 
 # Set up the working directories.
-ADE20K_FOLDER="ade20k"
+ADE20K_FOLDER="ADE20K"
 EXP_FOLDER="exp/train_on_trainval_set_mobilenetv2"
 INIT_FOLDER="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/init_models"
 TRAIN_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/${EXP_FOLDER}/train"
