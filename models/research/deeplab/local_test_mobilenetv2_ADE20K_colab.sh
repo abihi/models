@@ -73,7 +73,7 @@ cd "${CURRENT_DIR}"
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 # Train 10 iterations.
-NUM_ITERATIONS=10000
+NUM_ITERATIONS=3000
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
@@ -83,6 +83,7 @@ python "${WORK_DIR}"/train.py \
   --train_crop_size=513 \
   --train_crop_size=513 \
   --train_batch_size=4 \
+  --learning_rate_decay_factor=0.1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --initialize_last_layer=False \
   --last_layers_contain_logits_only=True \
