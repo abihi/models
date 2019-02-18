@@ -73,12 +73,13 @@ cd "${CURRENT_DIR}"
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 # Train 10 iterations.
-NUM_ITERATIONS=50000
+NUM_ITERATIONS=10000
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
   --model_variant="mobilenet_v2" \
   --output_stride=16 \
+  --base_learning_rate=0.001 \
   --train_crop_size=513 \
   --train_crop_size=513 \
   --train_batch_size=4 \
