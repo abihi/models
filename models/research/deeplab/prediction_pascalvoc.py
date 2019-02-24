@@ -1,6 +1,6 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('datasets/pascal_voc_seg/exp/train_on_trainval_set_mobilenetv2/export/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('datasets/pascal_voc_seg/exp/train_on_trainval_set_mobilenetv2/export/optimized_frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
 
 import os
 import StringIO
@@ -162,28 +162,21 @@ MODEL = DeepLabModel(_TARBALL_NAME)
 print('model loaded successfully!')
 
 ## Change this part to openCV camera
-from google.colab import files
 from os import path
+import time
 
-file_name = 'datasets/ADE20K/images/validation/ADE_val_00000029.jpg'
-uploaded = files.upload()
+file_name = 'datasets/ADE20K/ADEChallengeData2016/images/validation/ADE_val_00000026.jpg'
 
-for name, data in uploaded.items():
-  with open(file_name, 'wb') as f:
-    f.write(data)
-    f.close()
-    print('saved file ' + name)
+#orignal_im = Image.open(file_name)
+#print("Original im type: ",orignal_im.tpye())
 
-orignal_im = Image.open(name)
-
-print 'running deeplab on image frame'
-resized_im, seg_map = MODEL.run(orignal_im)
-vis_segmentation(resized_im, seg_map)
+#print 'running deeplab on image frame'
+#resized_im, seg_map = MODEL.run(orignal_im)
+#vis_segmentation(resized_im, seg_map)
 
 #OpenCV live test
-def live_test(model):
-    cv2.namedWindow("Input")
-    cv2.namedWindow("SingleDepth")
+def live_test():
+    cv2.namedWindow("mobilenet_v2 Deeplab (PascalVOC)")
     cap = cv2.VideoCapture(0)
     rval = True
 
@@ -192,42 +185,26 @@ def live_test(model):
     	rval, frame = cap.read()
         if rval == False:
             break
+        im_frame = Image.fromarray(frame)
     	end = time.time()
-    	print '%30s' % 'Grabbed camera frame in ', str((end - start)), 'seconds'
+    	print '%30s' % 'Grabbed camera frame in ', str((end - start)*1000), 'ms'
 
     	start = time.time()
-        frame_resize = frame#cv2.resize(frame, (640, 480))
-        #print 'frame_resize:', frame_resize.shape
-        frame_norm   = cv2.normalize(frame_resize, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-        #print 'frame_norm: ',frame_norm.shape
-
-        frame_PIL = Image.fromarray(np.uint8(frame_norm*255))
-    	frame     = loaddata.readNyu2(frame_PIL)
+        print 'running deeplab on image frame'
+        resized_im, seg_map = MODEL.run(im_frame)
         end = time.time()
-    	print '%30s' % 'Resized/Loaded image frame in ', str((end - start)), 'seconds'
+    	print '%30s' % 'Model inference done in ', str((end - start)*1000), 'ms'
 
         start = time.time()
-        for i, image in enumerate(frame):
-            image = torch.autograd.Variable(image, volatile=True)
-            frame_out = image
-            out = model(image)
+        seg_image = label_to_color_image(seg_map).astype(np.uint8)
+        resized_im = np.asarray(resized_im)
+        # apply the overlay
+        alpha = 0.8
+        cv2.addWeighted(seg_image, alpha, resized_im, 1 - alpha, 0, resized_im)
     	end = time.time()
-    	print '%30s' % 'Processed results in ', str((end - start)), 'seconds\n'
+    	print '%30s' % 'Segmentation map overlay in ', str((end - start)*1000), 'ms\n'
 
-        frame_out = frame_out.permute(2, 3, 1, 0).detach().numpy()
-        out = out.permute(2, 3, 1, 0).detach().numpy()
-
-        frame_out = frame_out.squeeze(axis=3)
-        out = out.squeeze(axis=3)
-        #print 'Shape frame_out: ', frame_out.shape
-        #print 'Type frame_out: ', type(frame_out)
-        #print 'Shape out: ', out.shape
-        #print 'Type out: ', type(out)
-
-
-
-    	cv2.imshow("Input", frame_out)
-    	cv2.imshow("SingleDepth", out)
+    	cv2.imshow("mobilenet_v2 Deeplab (PascalVOC)", resized_im)
 
         print rval
 
@@ -236,3 +213,6 @@ def live_test(model):
     	    break
     cap.release()
     cv2.destroyAllWindows()
+
+#OpenCV test
+live_test()
