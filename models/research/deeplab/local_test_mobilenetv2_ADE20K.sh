@@ -93,7 +93,7 @@ python "${WORK_DIR}"/train.py \
   --train_logdir="${TRAIN_LOGDIR}" \
   --dataset_dir="${ADE20K_DATASET}"
 
-# Run evaluation. This performs eval over the full val split (1449 images) and
+# Run evaluation. This performs eval over the full val split (2000 images) and
 # will take a while.
 # Using the provided checkpoint, one should expect mIOU=34.04%.
 python "${WORK_DIR}"/eval.py \
@@ -116,7 +116,6 @@ python "${WORK_DIR}"/vis.py \
   --model_variant="mobilenet_v2" \
   --vis_crop_size=1601 \
   --vis_crop_size=1601 \
-  --dataset=''
   --checkpoint_dir="${TRAIN_LOGDIR}" \
   --vis_logdir="${VIS_LOGDIR}" \
   --dataset_dir="${ADE20K_DATASET}" \
