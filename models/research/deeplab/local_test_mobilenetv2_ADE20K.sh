@@ -37,12 +37,12 @@ CURRENT_DIR=$(pwd)
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
-python "${WORK_DIR}"/model_test.py -v
+#python "${WORK_DIR}"/model_test.py -v
 
 # Go to datasets folder and download ADE20K segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-sh download_and_convert_ade20k.sh
+#sh download_and_convert_ade20k.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
@@ -63,8 +63,8 @@ mkdir -p "${EXPORT_DIR}"
 
 # Copy locally the trained checkpoint as the initial checkpoint.
 TF_INIT_ROOT="http://download.tensorflow.org/models"
-CKPT_NAME="deeplabv3_mnv2_pascal_train_aug"
-TF_INIT_CKPT="${CKPT_NAME}_2018_01_29.tar.gz"
+CKPT_NAME="deeplabv3_mnv2_ade20k_train_2018_12_03"
+TF_INIT_CKPT="${CKPT_NAME}.tar.gz"
 cd "${INIT_FOLDER}"
 wget -nd -c "${TF_INIT_ROOT}/${TF_INIT_CKPT}"
 tar -xf "${TF_INIT_CKPT}"
@@ -72,33 +72,34 @@ cd "${CURRENT_DIR}"
 
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
-# Train 10 iterations.
-NUM_ITERATIONS=1000
+NUM_ITERATIONS=10
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
+  --dataset="ade20k" \
   --model_variant="mobilenet_v2" \
   --output_stride=16 \
-  --train_crop_size=513 \
-  --train_crop_size=513 \
+  --train_crop_size=257 \
+  --train_crop_size=257 \
   --train_batch_size=1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
-  --initialize_last_layer=false \
-  --last_layers_contain_logits_only=true \
+  --initialize_last_layer=true \
+  --last_layers_contain_logits_only=false \
   --fine_tune_batch_norm=false \
   --min_resize_value=350 \
   --max_resize_value=500 \
   --resize_factor=16 \
-  --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}/model.ckpt-30000" \
+  --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}/model.ckpt" \
   --train_logdir="${TRAIN_LOGDIR}" \
   --dataset_dir="${ADE20K_DATASET}"
 
 # Run evaluation. This performs eval over the full val split (1449 images) and
 # will take a while.
-# Using the provided checkpoint, one should expect mIOU=75.34%.
+# Using the provided checkpoint, one should expect mIOU=34.04%.
 python "${WORK_DIR}"/eval.py \
   --logtostderr \
   --eval_split="val" \
+  --dataset="ade20k" \
   --model_variant="mobilenet_v2" \
   --eval_crop_size=1601 \
   --eval_crop_size=1601 \
@@ -111,9 +112,11 @@ python "${WORK_DIR}"/eval.py \
 python "${WORK_DIR}"/vis.py \
   --logtostderr \
   --vis_split="val" \
+  --dataset="ade20k" \
   --model_variant="mobilenet_v2" \
   --vis_crop_size=1601 \
   --vis_crop_size=1601 \
+  --dataset=''
   --checkpoint_dir="${TRAIN_LOGDIR}" \
   --vis_logdir="${VIS_LOGDIR}" \
   --dataset_dir="${ADE20K_DATASET}" \
@@ -129,8 +132,8 @@ python "${WORK_DIR}"/export_model.py \
   --export_path="${EXPORT_PATH}" \
   --model_variant="mobilenet_v2" \
   --num_classes=151 \
-  --crop_size=513 \
-  --crop_size=513 \
+  --crop_size=257 \
+  --crop_size=257 \
   --inference_scales=1.0
 
 # Run inference with the exported checkpoint.
