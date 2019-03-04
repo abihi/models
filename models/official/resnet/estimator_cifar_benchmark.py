@@ -27,8 +27,7 @@ from absl.testing import flagsaver
 import tensorflow as tf  # pylint: disable=g-bad-import-order
 
 from official.resnet import cifar10_main as cifar_main
-
-DATA_DIR = '/data/cifar10_data/cifar-10-batches-bin'
+from official.utils.logs import hooks
 
 
 class EstimatorCifar10BenchmarkTests(tf.test.Benchmark):
@@ -36,83 +35,114 @@ class EstimatorCifar10BenchmarkTests(tf.test.Benchmark):
 
   local_flags = None
 
-  def __init__(self, output_dir=None):
+  def __init__(self, output_dir=None, root_data_dir=None, **kwargs):
+    """A benchmark class.
+
+    Args:
+      output_dir: directory where to output e.g. log files
+      root_data_dir: directory under which to look for dataset
+      **kwargs: arbitrary named arguments. This is needed to make the
+                constructor forward compatible in case PerfZero provides more
+                named arguments before updating the constructor.
+    """
+
     self.output_dir = output_dir
+    self.data_dir = os.path.join(root_data_dir, 'cifar-10-batches-bin')
 
   def resnet56_1_gpu(self):
     """Test layers model with Estimator and distribution strategies."""
     self._setup()
     flags.FLAGS.num_gpus = 1
-    flags.FLAGS.data_dir = DATA_DIR
+    flags.FLAGS.data_dir = self.data_dir
     flags.FLAGS.batch_size = 128
     flags.FLAGS.train_epochs = 182
     flags.FLAGS.model_dir = self._get_model_dir('resnet56_1_gpu')
     flags.FLAGS.resnet_size = 56
     flags.FLAGS.dtype = 'fp32'
+    flags.FLAGS.hooks = ['ExamplesPerSecondHook']
     self._run_and_report_benchmark()
 
   def resnet56_fp16_1_gpu(self):
     """Test layers FP16 model with Estimator and distribution strategies."""
     self._setup()
     flags.FLAGS.num_gpus = 1
-    flags.FLAGS.data_dir = DATA_DIR
+    flags.FLAGS.data_dir = self.data_dir
     flags.FLAGS.batch_size = 128
     flags.FLAGS.train_epochs = 182
     flags.FLAGS.model_dir = self._get_model_dir('resnet56_fp16_1_gpu')
     flags.FLAGS.resnet_size = 56
     flags.FLAGS.dtype = 'fp16'
+    flags.FLAGS.hooks = ['ExamplesPerSecondHook']
     self._run_and_report_benchmark()
 
   def resnet56_2_gpu(self):
     """Test layers model with Estimator and dist_strat. 2 GPUs."""
     self._setup()
-    flags.FLAGS.num_gpus = 1
-    flags.FLAGS.data_dir = DATA_DIR
+    flags.FLAGS.num_gpus = 2
+    flags.FLAGS.data_dir = self.data_dir
     flags.FLAGS.batch_size = 128
     flags.FLAGS.train_epochs = 182
     flags.FLAGS.model_dir = self._get_model_dir('resnet56_2_gpu')
     flags.FLAGS.resnet_size = 56
     flags.FLAGS.dtype = 'fp32'
+    flags.FLAGS.hooks = ['ExamplesPerSecondHook']
     self._run_and_report_benchmark()
 
   def resnet56_fp16_2_gpu(self):
     """Test layers FP16 model with Estimator and dist_strat. 2 GPUs."""
     self._setup()
     flags.FLAGS.num_gpus = 2
-    flags.FLAGS.data_dir = DATA_DIR
+    flags.FLAGS.data_dir = self.data_dir
     flags.FLAGS.batch_size = 128
     flags.FLAGS.train_epochs = 182
     flags.FLAGS.model_dir = self._get_model_dir('resnet56_fp16_2_gpu')
     flags.FLAGS.resnet_size = 56
     flags.FLAGS.dtype = 'fp16'
+    flags.FLAGS.hooks = ['ExamplesPerSecondHook']
     self._run_and_report_benchmark()
 
   def unit_test(self):
     """A lightweight test that can finish quickly."""
     self._setup()
     flags.FLAGS.num_gpus = 1
-    flags.FLAGS.data_dir = DATA_DIR
+    flags.FLAGS.data_dir = self.data_dir
     flags.FLAGS.batch_size = 128
     flags.FLAGS.train_epochs = 1
     flags.FLAGS.model_dir = self._get_model_dir('resnet56_1_gpu')
     flags.FLAGS.resnet_size = 8
     flags.FLAGS.dtype = 'fp32'
+    flags.FLAGS.hooks = ['ExamplesPerSecondHook']
     self._run_and_report_benchmark()
 
   def _run_and_report_benchmark(self):
+    """Executes benchmark and reports result."""
     start_time_sec = time.time()
     stats = cifar_main.run_cifar(flags.FLAGS)
     wall_time_sec = time.time() - start_time_sec
 
+    examples_per_sec_hook = None
+    for hook in stats['train_hooks']:
+      if isinstance(hook, hooks.ExamplesPerSecondHook):
+        examples_per_sec_hook = hook
+        break
+
+    eval_results = stats['eval_results']
+    extras = {}
+    extras['accuracy_top_1'] = self._json_description(
+        eval_results['accuracy'].item(),
+        priority=0)
+    extras['accuracy_top_5'] = self._json_description(
+        eval_results['accuracy_top_5'].item())
+    if examples_per_sec_hook:
+      exp_per_second_list = examples_per_sec_hook.current_examples_per_sec_list
+      # ExamplesPerSecondHook skips the first 10 steps.
+      exp_per_sec = sum(exp_per_second_list) / (len(exp_per_second_list))
+      extras['exp_per_second'] = self._json_description(exp_per_sec)
+
     self.report_benchmark(
-        iters=stats['global_step'],
+        iters=eval_results['global_step'],
         wall_time=wall_time_sec,
-        extras={
-            'accuracy_top_1':
-                self._json_description(stats['accuracy'].item(), priority=0),
-            'accuracy_top_5':
-                self._json_description(stats['accuracy_top_5'].item()),
-        })
+        extras=extras)
 
   def _json_description(self,
                         value,

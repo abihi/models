@@ -73,7 +73,7 @@ cd "${CURRENT_DIR}"
 PASCAL_DATASET="${WORK_DIR}/${DATASET_DIR}/${PASCAL_FOLDER}/tfrecord"
 
 # Train 10 iterations.
-NUM_ITERATIONS=100
+NUM_ITERATIONS=10
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="trainval" \
@@ -81,7 +81,7 @@ python "${WORK_DIR}"/train.py \
   --output_stride=16 \
   --train_crop_size=513 \
   --train_crop_size=513 \
-  --train_batch_size=1 \
+  --train_batch_size=4 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --fine_tune_batch_norm=false \
   --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}/model.ckpt-30000" \
