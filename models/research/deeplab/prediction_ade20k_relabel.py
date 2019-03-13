@@ -1,6 +1,6 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('good_ade20k_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('good_relabel_mobilenet/optimized_frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
 
 import os
 import StringIO
@@ -147,7 +147,7 @@ def vis_segmentation(image, seg_map):
 
 
 LABEL_NAMES = np.asarray([
-  'background','wall','building, edifice','sky','floor, flooring','tree','ceiling','road, route','bed ','windowpane, window ','grass','cabinet','sidewalk, pavement','person, individual, someone, somebody, mortal, soul','earth, ground','door, double door','table','mountain, mount','plant, flora, plant life','curtain, drape, drapery, mantle, pall','chair','car, auto, automobile, machine, motorcar','water','painting, picture','sofa, couch, lounge','shelf','house','sea','mirror','rug, carpet, carpeting','field','armchair','seat','fence, fencing','desk','rock, stone','wardrobe, closet, press','lamp','bathtub, bathing tub, bath, tub','railing, rail','cushion','base, pedestal, stand','box','column, pillar','signboard, sign','chest of drawers, chest, bureau, dresser','counter','sand','sink','skyscraper','fireplace, hearth, open fireplace','refrigerator, icebox','grandstand, covered stand','path','stairs, steps','runway','case, display case, showcase, vitrine','pool table, billiard table, snooker table','pillow','screen door, screen','stairway, staircase','river','bridge, span','bookcase','blind, screen','coffee table, cocktail table','toilet, can, commode, crapper, pot, potty, stool, throne','flower','book','hill','bench','countertop','stove, kitchen stove, range, kitchen range, cooking stove','palm, palm tree','kitchen island','computer, computing machine, computing device, data processor, electronic computer, information processing system','swivel chair','boat','bar','arcade machine','hovel, hut, hutch, shack, shanty','bus, autobus, coach, charabanc, double-decker, jitney, motorbus, motorcoach, omnibus, passenger vehicle','towel','light, light source','truck, motortruck','tower','chandelier, pendant, pendent','awning, sunshade, sunblind','streetlight, street lamp','booth, cubicle, stall, kiosk','television receiver, television, television set, tv, tv set, idiot box, boob tube, telly, goggle box','airplane, aeroplane, plane','dirt track','apparel, wearing apparel, dress, clothes','pole','land, ground, soil','bannister, banister, balustrade, balusters, handrail','escalator, moving staircase, moving stairway','ottoman, pouf, pouffe, puff, hassock','bottle','buffet, counter, sideboard','poster, posting, placard, notice, bill, card','stage','van','ship','fountain','conveyer belt, conveyor belt, conveyer, conveyor, transporter','canopy','washer, automatic washer, washing machine','plaything, toy','swimming pool, swimming bath, natatorium','stool','barrel, cask','basket, handbasket','waterfall, falls','tent, collapsible shelter','bag','minibike, motorbike','cradle','oven','ball','food, solid food','step, stair','tank, storage tank','trade name, brand name, brand, marque','microwave, microwave oven','pot, flowerpot','animal, animate being, beast, brute, creature, fauna','bicycle, bike, wheel, cycle ','lake','dishwasher, dish washer, dishwashing machine','screen, silver screen, projection screen','blanket, cover','sculpture','hood, exhaust hood','sconce','vase','traffic light, traffic signal, stoplight','tray','ashcan, trash can, garbage can, wastebin, ash bin, ash-bin, ashbin, dustbin, trash barrel, trash bin','fan','pier, wharf, wharfage, dock','crt screen','plate','monitor, monitoring device','bulletin board, notice board','shower','radiator','glass, drinking glass','clock','flag'
+  'background','wall','floor'
 ])
 
 FULL_LABEL_MAP = np.arange(len(LABEL_NAMES)).reshape(len(LABEL_NAMES), 1)
@@ -173,7 +173,7 @@ file_name = 'datasets/ADE20K/ADEChallengeData2016/images/validation/ADE_val_0000
 
 #OpenCV live test
 def live_test():
-    cv2.namedWindow("mobilenet_v2 Deeplab (ADE20K)")
+    cv2.namedWindow("mobilenet_v2 Deeplab (ADE20K relabled)")
     cap = cv2.VideoCapture(0)
     rval = True
 
@@ -201,8 +201,8 @@ def live_test():
     	end = time.time()
     	print '%30s' % 'Segmentation map overlay in ', str((end - start)*1000), 'ms\n'
 
-    	final_image = cv2.resize(resized_im, None, fx=3.5, fy=3.5)
-    	cv2.imshow("mobilenet_v2 Deeplab (ADE20K)", final_image)
+        final_image = cv2.resize(resized_im, None, fx=3.5, fy=3.5)
+    	cv2.imshow("mobilenet_v2 Deeplab (ADE20K relabled)", final_image)
 
         print rval
 
