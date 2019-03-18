@@ -75,7 +75,7 @@ ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 TRAIN_CROP_SIZE=257
 EVIS_CROP_SIZE=1601
-NUM_ITERATIONS=20000
+NUM_ITERATIONS=200000
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
