@@ -32,4 +32,5 @@ for prediction, groundtruth in itertools.izip(hallway_predictions, hallway_groun
     if count % 5 == 0:
         print "Calculating IoU ", count, "of 305"
 
-halway_mIoU = sum(hallway_iou_scores) / len(hallway_iou_scores)
+hallway_mIoU = sum(hallway_iou_scores) / len(hallway_iou_scores)
+print "Hallway mIoU=", hallway_mIoU

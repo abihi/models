@@ -14,7 +14,6 @@ import numpy as np
 from PIL import Image
 
 import tensorflow as tf
-import cv2
 
 ## Helper methods ##
 class DeepLabModel(object):

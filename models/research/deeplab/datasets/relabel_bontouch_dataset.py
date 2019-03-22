@@ -2,6 +2,83 @@ from PIL import Image
 import numpy as np
 import os
 import glob
+from matplotlib import gridspec
+from matplotlib import pyplot as plt
+
+def create_pascal_label_colormap():
+  """Creates a label colormap used in PASCAL VOC segmentation benchmark.
+
+  Returns:
+    A Colormap for visualizing segmentation results.
+  """
+  colormap = np.zeros((256, 3), dtype=int)
+  ind = np.arange(256, dtype=int)
+
+  for shift in reversed(range(8)):
+    for channel in range(3):
+      colormap[:, channel] |= ((ind >> channel) & 1) << shift
+    ind >>= 3
+
+  return colormap
+
+
+def label_to_color_image(label):
+  """Adds color defined by the dataset colormap to the label.
+
+  Args:
+    label: A 2D array with integer type, storing the segmentation label.
+
+  Returns:
+    result: A 2D array with floating type. The element of the array
+      is the color indexed by the corresponding element in the input label
+      to the PASCAL color map.
+
+  Raises:
+    ValueError: If label is not of rank 2 or its value is larger than color
+      map maximum entry.
+  """
+  if label.ndim != 2:
+    raise ValueError('Expect 2-D input label')
+
+  colormap = create_pascal_label_colormap()
+
+  if np.max(label) >= len(colormap):
+    raise ValueError('label value too large.')
+
+  return colormap[label]
+
+
+def vis_segmentation(image, seg_map):
+  """Visualizes input image, segmentation map and overlay view."""
+  plt.figure(figsize=(15, 5))
+  grid_spec = gridspec.GridSpec(1, 4, width_ratios=[6, 6, 6, 1])
+
+  plt.subplot(grid_spec[0])
+  plt.imshow(image)
+  plt.axis('off')
+  plt.title('input image')
+
+  plt.subplot(grid_spec[1])
+  seg_image = seg_map#label_to_color_image(seg_map).astype(np.uint8)
+  plt.imshow(seg_image)
+  plt.axis('off')
+  plt.title('relabeled image')
+
+  plt.subplot(grid_spec[2])
+  plt.imshow(image)
+  plt.imshow(seg_image, alpha=0.5)
+  plt.axis('off')
+  plt.title('relabel overlay')
+
+  plt.grid('off')
+  plt.show()
+
+LABEL_NAMES = np.asarray([
+  'background','wall','floor'
+])
+
+FULL_LABEL_MAP = np.arange(len(LABEL_NAMES)).reshape(len(LABEL_NAMES), 1)
+FULL_COLOR_MAP = label_to_color_image(FULL_LABEL_MAP)
 
 # Values after converting rgb segmap to grayscale
 # 1 (wall) <- 75
@@ -14,30 +91,32 @@ if(not os.path.isdir(hallway_dir)):
     os.mkdir(hallway_dir)
 hallway_files = glob.glob("Bontouch/hallway_dataset_voc/SegmentationClassPNG/*.png")
 
-count = 0
-for filename in hallway_files:
-    #Converts img to grayscale
-    im = Image.open(filename).convert('L')
-    count += 1
+def relabel_images(files):
+    count = 0
+    for filename in files:
+        #Converts img to grayscale
+        im = Image.open(filename).convert('L')
+        count += 1
 
-    im_mat=np.asarray(im.getdata(),dtype=np.uint8).reshape((im.size[1],im.size[0]))
+        im_mat=np.asarray(im.getdata(),dtype=np.uint8).reshape((im.size[1],im.size[0]))
+        #im_vis = label_to_color_image(im_mat)
 
-    for x in range(im.size[1]):
-        for y in range(im.size[0]):
-            if im_mat[x, y] == 75:
-                im_mat[x,y] = 1
-            elif im_mat[x,y] == 38:
-                im_mat[x,y] = 2
-            else:
-                im_mat[x,y] = 0
+        im_mat[im_mat==38] = 2
+        im_mat[im_mat==75] = 1
+        im_mat[im_mat>2] = 0
 
-    im_mat=np.asarray(im_mat,dtype=np.uint8) #if values still in range 0-255!
-    img=Image.fromarray(im_mat,mode='L')
-    im.close()
+        im_mat=np.asarray(im_mat,dtype=np.uint8)
+        img=Image.fromarray(im_mat,mode='L')
 
-    if count % 5 == 0:
-        print "Converting file ", count, "of 305"
+        #vis_segmentation(im, im_mat)
 
-    filename = filename.replace("SegmentationClassPNG", "raw_segmentation", 1)
-    img.save(filename)
-    img.close()
+        im.close()
+
+        if count % 5 == 0:
+            print "Converting file ", count, "of ", len(files)
+
+        filename = filename.replace("SegmentationClassPNG", "raw_segmentation", 1)
+        img.save(filename)
+        img.close()
+
+relabel_images(hallway_files)
