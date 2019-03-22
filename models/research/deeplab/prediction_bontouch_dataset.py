@@ -69,7 +69,7 @@ class DeepLabModel(object):
         feed_dict={self.INPUT_TENSOR_NAME: [np.asarray(resized_image)]})
     seg_map = batch_seg_map[0]
     end = time.time()
-    print '%30s' % 'Model inference done in ', str((end - start)*1000), 'ms'
+    #print '%30s' % 'Model inference done in ', str((end - start)*1000), 'ms'
     return resized_image, seg_map
 
 
@@ -176,6 +176,11 @@ for filename in hallway_files:
     im = Image.open(filename)
 
     resized_im, seg_map = MODEL.run(im)
+    im.close()
 
     seg_image = label_to_color_image(seg_map).astype(np.uint8)
-    vis_segmentation(resized_im, seg_map)
+
+    #vis_segmentation(resized_im, seg_map)
+    filename = filename.replace("images", "predictions", 1)
+    img=Image.fromarray(seg_map,mode='L')
+    img.save(filename)
