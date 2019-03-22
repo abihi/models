@@ -105,11 +105,20 @@ _ADE20K_RELABELED_INFORMATION = DatasetDescriptor(
     ignore_label=255,
 )
 
+_HALLWAY_INFORMATION = DatasetDescriptor(
+    splits_to_sizes={
+        'val': 308,
+    },
+    num_classes=3,
+    ignore_label=255,
+)
+
 _DATASETS_INFORMATION = {
     'cityscapes': _CITYSCAPES_INFORMATION,
     'pascal_voc_seg': _PASCAL_VOC_SEG_INFORMATION,
     'ade20k': _ADE20K_INFORMATION,
     'ade20k_relabeled': _ADE20K_RELABELED_INFORMATION,
+    'hallway': _HALLWAY_INFORMATION,
 }
 
 # Default file pattern of TFRecord of TensorFlow Example.
@@ -129,6 +138,7 @@ class Dataset(object):
                dataset_dir,
                batch_size,
                crop_size,
+               num_samples=0,
                min_resize_value=None,
                max_resize_value=None,
                resize_factor=None,
@@ -185,6 +195,7 @@ class Dataset(object):
     self.dataset_dir = dataset_dir
     self.batch_size = batch_size
     self.crop_size = crop_size
+    self.num_samples = splits_to_sizes[split_name]
     self.min_resize_value = min_resize_value
     self.max_resize_value = max_resize_value
     self.resize_factor = resize_factor

@@ -94,8 +94,8 @@ for filename in hallway_files:
     resized_im, seg_map = MODEL.run(im)
 
     #seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
-
     #visualize_data.vis_segmentation(resized_im, seg_map, 1)
+    
     filename_preds = filename.replace("images", "predictions", 1)
     filename_preds = filename_preds.replace("jpg", "png", 1)
     filename_vis = filename.replace("images", "predictions_vis", 1)

@@ -85,7 +85,7 @@ def _convert_dataset(dataset_split, dataset_dir, dataset_label_dir):
 def main(unused_argv):
   tf.gfile.MakeDirs(FLAGS.output_dir)
   _convert_dataset(
-      'hallway', FLAGS.bontouch_image_folder, FLAGS.bontouch_label_folder)
+      'val', FLAGS.bontouch_image_folder, FLAGS.bontouch_label_folder)
   #_convert_dataset('val', FLAGS.val_image_folder, FLAGS.val_image_label_folder)
 
 

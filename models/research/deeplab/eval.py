@@ -152,7 +152,7 @@ def main(unused_argv):
     tf.summary.scalar(predictions_tag, miou)
 
     print "mIoU: ", miou
-    
+
     summary_op = tf.summary.merge_all()
     summary_hook = tf.contrib.training.SummaryAtEndHook(
         log_dir=FLAGS.eval_logdir, summary_op=summary_op)

@@ -37,12 +37,12 @@ CURRENT_DIR=$(pwd)
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
-python "${WORK_DIR}"/model_test.py -v
+#python "${WORK_DIR}"/model_test.py -v
 
 # Go to datasets folder and download ADE20K segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-sh download_and_convert_ade20k_relabel.sh
+#sh download_and_convert_ade20k_relabel.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
@@ -74,8 +74,8 @@ cd "${CURRENT_DIR}"
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 TRAIN_CROP_SIZE=257
-EVIS_CROP_SIZE=1601
-NUM_ITERATIONS=200000
+EVIS_CROP_SIZE=1921
+NUM_ITERATIONS=10
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
@@ -96,7 +96,7 @@ python "${WORK_DIR}"/train.py \
   # Run evaluation. This performs eval over the full val split (2000 images) and
   # will take a while.
   # Using the provided checkpoint, one should expect mIOU=32.04%.
-  python "${WORK_DIR}"/eval.py \
+  python "${WORK_DIR}"/eval_old.py \
     --logtostderr \
     --eval_split="val" \
     --model_variant="mobilenet_v2" \
@@ -108,17 +108,41 @@ python "${WORK_DIR}"/train.py \
     --dataset_dir="${ADE20K_DATASET}" \
     --max_number_of_evaluations=1
 
+  echo "Eval on Hallway segment"
+  python "${WORK_DIR}"/eval_old.py \
+    --logtostderr \
+    --eval_split="val" \
+    --model_variant="mobilenet_v2" \
+    --dataset="hallway" \
+    --eval_crop_size="${EVIS_CROP_SIZE}" \
+    --eval_crop_size="${EVIS_CROP_SIZE}" \
+    --checkpoint_dir="${TRAIN_LOGDIR}" \
+    --eval_logdir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/eval" \
+    --dataset_dir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/tfrecord" \
+    --max_number_of_evaluations=1
+
   # Visualize the results.
+  # python "${WORK_DIR}"/vis.py \
+  #   --logtostderr \
+  #   --vis_split="val" \
+  #   --model_variant="mobilenet_v2" \
+  #   --dataset="ade20k_relabeled" \
+  #   --vis_crop_size="${EVIS_CROP_SIZE}" \
+  #   --vis_crop_size="${EVIS_CROP_SIZE}" \
+  #   --checkpoint_dir="${TRAIN_LOGDIR}" \
+  #   --vis_logdir="${VIS_LOGDIR}" \
+  #   --dataset_dir="${ADE20K_DATASET}" \
+  #   --max_number_of_iterations=1
   python "${WORK_DIR}"/vis.py \
     --logtostderr \
     --vis_split="val" \
     --model_variant="mobilenet_v2" \
-    --dataset="ade20k_relabeled" \
+    --dataset="hallway" \
     --vis_crop_size="${EVIS_CROP_SIZE}" \
     --vis_crop_size="${EVIS_CROP_SIZE}" \
     --checkpoint_dir="${TRAIN_LOGDIR}" \
-    --vis_logdir="${VIS_LOGDIR}" \
-    --dataset_dir="${ADE20K_DATASET}" \
+    --vis_logdir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/vis" \
+    --dataset_dir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/tfrecord" \
     --max_number_of_iterations=1
 
   # Export the trained checkpoint.

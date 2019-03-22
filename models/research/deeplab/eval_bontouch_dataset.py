@@ -34,13 +34,13 @@ def evaluate(predictions, groundtruth, input_size):
         if count % 25 == 0:
             print "Calculating IoU", count, "of", len(predictions)
             # visualize comparison
-            pred_mat[pred_mat == 1] = 128
-            pred_mat[pred_mat == 2] = 235
-            gt_mat[gt_mat == 1] = 128
-            gt_mat[gt_mat == 2] = 235
-            img_pred = Image.fromarray(pred_mat, mode='L')
-            img_gt = Image.fromarray(gt_mat, mode='L')
-            visualize_data.vis_segmentation(img_pred, img_gt, 1)
+            # pred_mat[pred_mat == 1] = 128
+            # pred_mat[pred_mat == 2] = 235
+            # gt_mat[gt_mat == 1] = 128
+            # gt_mat[gt_mat == 2] = 235
+            # img_pred = Image.fromarray(pred_mat, mode='L')
+            # img_gt = Image.fromarray(gt_mat, mode='L')
+            # visualize_data.vis_segmentation(img_pred, img_gt, 1)
 
     return sum(iou_scores) / len(iou_scores)
 

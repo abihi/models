@@ -98,7 +98,7 @@ def live_test():
         start = time.time()
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
         resized_im = np.asarray(resized_im)
-        # apply the overlay
+
         alpha = 0.8
         cv2.addWeighted(seg_image, alpha, resized_im, 1 - alpha, 0, resized_im)
     	end = time.time()
@@ -110,7 +110,7 @@ def live_test():
         print rval
 
     	key = cv2.waitKey(1)
-    	if key == 27: # exit on ESC
+    	if key == 27: 
     	    break
     cap.release()
     cv2.destroyAllWindows()
