@@ -168,9 +168,13 @@ from PIL import Image
 from skimage import filters
 
 preds_dir = "datasets/Bontouch/hallway_dataset_voc/predictions"
+preds_vis = "datasets/Bontouch/hallway_dataset_voc/predictions_vis"
 hallway_files = glob.glob("/home/abihi/tf/models/research/deeplab/datasets/Bontouch/hallway_dataset_voc/images/*.jpg")
 if not os.path.isdir(preds_dir):
     os.mkdir(preds_dir)
+
+if not os.path.isdir(preds_vis):
+    os.mkdir(preds_vis)
 
 for filename in hallway_files:
     im = Image.open(filename)
@@ -181,6 +185,11 @@ for filename in hallway_files:
     seg_image = label_to_color_image(seg_map).astype(np.uint8)
 
     #vis_segmentation(resized_im, seg_map)
-    filename = filename.replace("images", "predictions", 1)
+    filename_preds = filename.replace("images", "predictions", 1)
+    filename_vis = filename.replace("images", "predictions_vis", 1)
     img=Image.fromarray(seg_map,mode='L')
-    img.save(filename)
+    img_vis=Image.fromarray(seg_image)
+    img.save(filename_preds)
+    img_vis.save(filename_vis)
+    img.close()
+    img.close()
