@@ -1,6 +1,6 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('good_relabel_mobilenet/optimized_frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('good_relabel_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
 
 import os
 import StringIO
@@ -201,7 +201,7 @@ def live_test():
     	end = time.time()
     	print '%30s' % 'Segmentation map overlay in ', str((end - start)*1000), 'ms\n'
 
-        final_image = cv2.resize(resized_im, None, fx=3.5, fy=3.5)
+        final_image = cv2.resize(resized_im, None, fx=7, fy=5)
     	cv2.imshow("mobilenet_v2 Deeplab (ADE20K relabled)", final_image)
 
         print rval

@@ -73,8 +73,8 @@ cd "${CURRENT_DIR}"
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 TRAIN_CROP_SIZE=257
-EVIS_CROP_SIZE=1601
-NUM_ITERATIONS=150000
+EVIS_CROP_SIZE=1201
+NUM_ITERATIONS=15000
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
@@ -83,7 +83,7 @@ python "${WORK_DIR}"/train.py \
   --output_stride=16 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
-  --train_batch_size=4 \
+  --train_batch_size=1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --fine_tune_batch_norm=false \
   --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}/model.ckpt" \

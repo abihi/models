@@ -84,7 +84,7 @@ python "${WORK_DIR}"/train.py \
   --decoder_output_stride=4 \
   --train_crop_size=513 \
   --train_crop_size=513 \
-  --train_batch_size=4 \
+  --train_batch_size=1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --fine_tune_batch_norm=true \
   --tf_initial_checkpoint="${INIT_FOLDER}/deeplabv3_pascal_train_aug/model.ckpt" \
