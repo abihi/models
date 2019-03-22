@@ -96,6 +96,8 @@ ENV/
 
 samples/outreach/blogs/segmentation_blogpost/carvana-image-masking-challenge/
 
+*.tfrecord
+
 models/research/deeplab/datasets/ADE20K/*
 models/research/deeplab/datasets/ADE20K_relabeled/*
 models/research/deeplab/datasets/pascal_voc_seg/*
