@@ -73,11 +73,6 @@ class DeepLabModel(object):
 
 
 def create_pascal_label_colormap():
-  """Creates a label colormap used in PASCAL VOC segmentation benchmark.
-
-  Returns:
-    A Colormap for visualizing segmentation results.
-  """
   colormap = np.zeros((256, 3), dtype=int)
   ind = np.arange(256, dtype=int)
 
@@ -90,20 +85,6 @@ def create_pascal_label_colormap():
 
 
 def label_to_color_image(label):
-  """Adds color defined by the dataset colormap to the label.
-
-  Args:
-    label: A 2D array with integer type, storing the segmentation label.
-
-  Returns:
-    result: A 2D array with floating type. The element of the array
-      is the color indexed by the corresponding element in the input label
-      to the PASCAL color map.
-
-  Raises:
-    ValueError: If label is not of rank 2 or its value is larger than color
-      map maximum entry.
-  """
   if label.ndim != 2:
     raise ValueError('Expect 2-D input label')
 
@@ -116,7 +97,6 @@ def label_to_color_image(label):
 
 
 def vis_segmentation(image, seg_map):
-  """Visualizes input image, segmentation map and overlay view."""
   plt.figure(figsize=(15, 5))
   grid_spec = gridspec.GridSpec(1, 4, width_ratios=[6, 6, 6, 1])
 
@@ -126,7 +106,7 @@ def vis_segmentation(image, seg_map):
   plt.title('input image')
 
   plt.subplot(grid_spec[1])
-  seg_image = label_to_color_image(seg_map).astype(np.uint8)
+  seg_image = seg_map#label_to_color_image(seg_map).astype(np.uint8)
   plt.imshow(seg_image)
   plt.axis('off')
   plt.title('segmentation map')
@@ -164,7 +144,6 @@ import os
 import time
 import glob
 from PIL import Image
-from skimage import filters
 
 preds_dir = "datasets/Bontouch/hallway_dataset_voc/predictions"
 preds_vis = "datasets/Bontouch/hallway_dataset_voc/predictions_vis"
@@ -179,16 +158,19 @@ for filename in hallway_files:
     im = Image.open(filename)
 
     resized_im, seg_map = MODEL.run(im)
-    im.close()
 
     seg_image = label_to_color_image(seg_map).astype(np.uint8)
 
     #vis_segmentation(resized_im, seg_map)
     filename_preds = filename.replace("images", "predictions", 1)
+    filename_preds = filename_preds.replace("jpg", "png", 1)
     filename_vis = filename.replace("images", "predictions_vis", 1)
-    img=Image.fromarray(seg_map,mode='L')
+
+    img_seg=Image.fromarray(seg_map.astype(np.uint8), mode='L')
+    img_seg.save(filename_preds)
+    img_seg.close()
+
     img_vis=Image.fromarray(seg_image)
-    img.save(filename_preds)
     img_vis.save(filename_vis)
-    img.close()
-    img.close()
+    img_vis.close()
+    im.close()

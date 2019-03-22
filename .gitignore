@@ -99,3 +99,5 @@ samples/outreach/blogs/segmentation_blogpost/carvana-image-masking-challenge/
 models/research/deeplab/datasets/ADE20K/*
 models/research/deeplab/datasets/ADE20K_relabeled/*
 models/research/deeplab/datasets/pascal_voc_seg/*
+models/research/deeplab/datasets/Bontouch/*
+models/research/deeplab/deeplab_model.tar.gz

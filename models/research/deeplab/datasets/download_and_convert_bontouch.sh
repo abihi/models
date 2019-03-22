@@ -14,7 +14,7 @@ BONTOUCH_ROOT="${CURRENT_DIR}/Bontouch"
 echo "Converting Hallway dataset..."
 OUTPUT_DIR="${WORK_DIR}/hallway_dataset_voc/tfrecord"
 mkdir -p "${OUTPUT_DIR}"
-python ./relabel_bontouch_dataset.py
+#python ./relabel_bontouch_dataset.py
 python ./build_bontouch_data.py  \
   --bontouch_image_folder="${BONTOUCH_ROOT}/hallway_dataset_voc/images" \
   --bontouch_label_folder="${BONTOUCH_ROOT}/hallway_dataset_voc/raw_segmentation" \

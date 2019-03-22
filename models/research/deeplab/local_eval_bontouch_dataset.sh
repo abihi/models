@@ -22,10 +22,16 @@ sh download_and_convert_bontouch.sh
 # Go back to original directory.
 cd "${CURRENT_DIR}"
 
-BONTOUCH_DIR = "${WORK_DIR}/${DATASET_DIR}/Bontouch"
-HALLWAY_PRED_LOGDIR = "${BONTOUCH_DIR}/hallway_dataset_voc/predictions"
-HALLWAY_DATASET = "${BONTOUCH_DIR}/hallway_dataset_voc/tfrecord"
+echo "${WORK_DIR}/${DATASET_DIR}/Bontouch/"
+BONTOUCH_DIR="${WORK_DIR}/${DATASET_DIR}/Bontouch"
+HALLWAY_PRED_LOGDIR="${BONTOUCH_DIR}/hallway_dataset_voc/predictions"
+HALLWAY_DATASET="${BONTOUCH_DIR}/hallway_dataset_voc/tfrecord"
 mkdir -p "${HALLWAY_PRED_LOGDIR}"
 
+cd "${WORK_DIR}"
+
 echo "Running prediction on hallway segment"
-python "${WORK_DIR}"/prediction_bontouch_dataset.py
+#python prediction_bontouch_dataset.py
+
+echo "Calculating mean intersection over union"
+python eval_bontouch_dataset.py

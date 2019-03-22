@@ -6,11 +6,6 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 
 def create_pascal_label_colormap():
-  """Creates a label colormap used in PASCAL VOC segmentation benchmark.
-
-  Returns:
-    A Colormap for visualizing segmentation results.
-  """
   colormap = np.zeros((256, 3), dtype=int)
   ind = np.arange(256, dtype=int)
 
@@ -23,20 +18,6 @@ def create_pascal_label_colormap():
 
 
 def label_to_color_image(label):
-  """Adds color defined by the dataset colormap to the label.
-
-  Args:
-    label: A 2D array with integer type, storing the segmentation label.
-
-  Returns:
-    result: A 2D array with floating type. The element of the array
-      is the color indexed by the corresponding element in the input label
-      to the PASCAL color map.
-
-  Raises:
-    ValueError: If label is not of rank 2 or its value is larger than color
-      map maximum entry.
-  """
   if label.ndim != 2:
     raise ValueError('Expect 2-D input label')
 
@@ -49,7 +30,6 @@ def label_to_color_image(label):
 
 
 def vis_segmentation(image, seg_map):
-  """Visualizes input image, segmentation map and overlay view."""
   plt.figure(figsize=(15, 5))
   grid_spec = gridspec.GridSpec(1, 4, width_ratios=[6, 6, 6, 1])
 
@@ -80,17 +60,6 @@ LABEL_NAMES = np.asarray([
 FULL_LABEL_MAP = np.arange(len(LABEL_NAMES)).reshape(len(LABEL_NAMES), 1)
 FULL_COLOR_MAP = label_to_color_image(FULL_LABEL_MAP)
 
-# Values after converting rgb segmap to grayscale
-# 1 (wall) <- 75
-# 2 (floor) <- 38
-
-cwd = os.getcwd()
-
-hallway_dir = cwd + "/Bontouch/hallway_dataset_voc/raw_segmentation"
-if(not os.path.isdir(hallway_dir)):
-    os.mkdir(hallway_dir)
-hallway_files = glob.glob("Bontouch/hallway_dataset_voc/SegmentationClassPNG/*.png")
-
 def relabel_images(files):
     count = 0
     for filename in files:
@@ -113,10 +82,21 @@ def relabel_images(files):
         im.close()
 
         if count % 5 == 0:
-            print "Converting file ", count, "of ", len(files)
+            print "Relabeling file ", count, "of", len(files)
 
         filename = filename.replace("SegmentationClassPNG", "raw_segmentation", 1)
         img.save(filename)
         img.close()
+
+# Values after converting rgb segmap to grayscale
+# 1 (wall) <- 75
+# 2 (floor) <- 38
+
+cwd = os.getcwd()
+
+hallway_dir = cwd + "/Bontouch/hallway_dataset_voc/raw_segmentation"
+if(not os.path.isdir(hallway_dir)):
+    os.mkdir(hallway_dir)
+hallway_files = glob.glob("Bontouch/hallway_dataset_voc/SegmentationClassPNG/*.png")
 
 relabel_images(hallway_files)
