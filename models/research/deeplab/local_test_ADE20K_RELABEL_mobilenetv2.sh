@@ -74,7 +74,9 @@ cd "${CURRENT_DIR}"
 ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 TRAIN_CROP_SIZE=257
-EVIS_CROP_SIZE=1921
+EVIS_CROP_SIZE=1601
+EVIS_CROP_SIZE_X=1921
+EVIS_CROP_SIZE_Y=1089
 NUM_ITERATIONS=10
 python "${WORK_DIR}"/train.py \
   --logtostderr \
@@ -96,17 +98,17 @@ python "${WORK_DIR}"/train.py \
   # Run evaluation. This performs eval over the full val split (2000 images) and
   # will take a while.
   # Using the provided checkpoint, one should expect mIOU=32.04%.
-  python "${WORK_DIR}"/eval_old.py \
-    --logtostderr \
-    --eval_split="val" \
-    --model_variant="mobilenet_v2" \
-    --dataset="ade20k_relabeled" \
-    --eval_crop_size="${EVIS_CROP_SIZE}" \
-    --eval_crop_size="${EVIS_CROP_SIZE}" \
-    --checkpoint_dir="${TRAIN_LOGDIR}" \
-    --eval_logdir="${EVAL_LOGDIR}" \
-    --dataset_dir="${ADE20K_DATASET}" \
-    --max_number_of_evaluations=1
+  # python "${WORK_DIR}"/eval_old.py \
+  #   --logtostderr \
+  #   --eval_split="val" \
+  #   --model_variant="mobilenet_v2" \
+  #   --dataset="ade20k_relabeled" \
+  #   --eval_crop_size="${EVIS_CROP_SIZE}" \
+  #   --eval_crop_size="${EVIS_CROP_SIZE}" \
+  #   --checkpoint_dir="${TRAIN_LOGDIR}" \
+  #   --eval_logdir="${EVAL_LOGDIR}" \
+  #   --dataset_dir="${ADE20K_DATASET}" \
+  #   --max_number_of_evaluations=1
 
   echo "Eval on Hallway segment"
   python "${WORK_DIR}"/eval_old.py \
@@ -114,8 +116,8 @@ python "${WORK_DIR}"/train.py \
     --eval_split="val" \
     --model_variant="mobilenet_v2" \
     --dataset="hallway" \
-    --eval_crop_size="${EVIS_CROP_SIZE}" \
-    --eval_crop_size="${EVIS_CROP_SIZE}" \
+    --eval_crop_size=${EVIS_CROP_SIZE_X} \
+    --eval_crop_size=${EVIS_CROP_SIZE_Y} \
     --checkpoint_dir="${TRAIN_LOGDIR}" \
     --eval_logdir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/eval" \
     --dataset_dir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/tfrecord" \
@@ -138,8 +140,8 @@ python "${WORK_DIR}"/train.py \
     --vis_split="val" \
     --model_variant="mobilenet_v2" \
     --dataset="hallway" \
-    --vis_crop_size="${EVIS_CROP_SIZE}" \
-    --vis_crop_size="${EVIS_CROP_SIZE}" \
+    --vis_crop_size=${EVIS_CROP_SIZE_X} \
+    --vis_crop_size=${EVIS_CROP_SIZE_Y} \
     --checkpoint_dir="${TRAIN_LOGDIR}" \
     --vis_logdir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/vis" \
     --dataset_dir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/tfrecord" \
@@ -154,7 +156,7 @@ python "${WORK_DIR}"/train.py \
     --checkpoint_path="${CKPT_PATH}" \
     --export_path="${EXPORT_PATH}" \
     --model_variant="mobilenet_v2" \
-    --num_classes=3 \
+    --num_classes=4 \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --inference_scales=1.0

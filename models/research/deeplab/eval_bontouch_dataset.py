@@ -1,6 +1,7 @@
 from __future__ import division
 from PIL import Image
 import numpy as np
+import sys
 import glob
 import itertools
 
@@ -31,8 +32,11 @@ def evaluate(predictions, groundtruth, input_size):
 
         iou_scores.append(iou_score)
 
-        if count % 25 == 0:
-            print "Calculating IoU", count, "of", len(predictions)
+        sys.stdout.write('\r>> Calculating IoU of image %d/%d' % (
+            count, len(predictions)))
+        sys.stdout.flush()
+
+        #if count % 25 == 0:
             # visualize comparison
             # pred_mat[pred_mat == 1] = 128
             # pred_mat[pred_mat == 2] = 235
@@ -41,7 +45,8 @@ def evaluate(predictions, groundtruth, input_size):
             # img_pred = Image.fromarray(pred_mat, mode='L')
             # img_gt = Image.fromarray(gt_mat, mode='L')
             # visualize_data.vis_segmentation(img_pred, img_gt, 1)
-
+    sys.stdout.write('\n')
+    sys.stdout.flush()
     return sum(iou_scores) / len(iou_scores)
 
 hallway_predictions = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/predictions/*.png"))
