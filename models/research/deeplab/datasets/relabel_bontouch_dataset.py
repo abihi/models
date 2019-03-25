@@ -2,11 +2,17 @@ from PIL import Image
 import numpy as np
 import os
 import glob
+import sys
 import visualize_data
+
+cwd = os.getcwd()
 
 def relabel_images(files):
     count = 0
     for filename in files:
+        org_file  = filename.replace("SegmentationClassPNG", "images", 1)
+        org_file  = org_file.replace("png", "jpg", 1)
+        org_image = Image.open(cwd+"/"+org_file)
         #Converts img to grayscale
         im = Image.open(filename).convert('L')
         count += 1
@@ -21,22 +27,22 @@ def relabel_images(files):
         im_mat=np.asarray(im_mat,dtype=np.uint8)
         img=Image.fromarray(im_mat,mode='L')
 
-        visualize_data.vis_segmentation(im_vis, im_mat, 1)
+        #visualize_data.vis_segmentation(im_vis, im_mat, 1)
 
         im.close()
 
-        if count % 5 == 0:
-            print "Relabeling file ", count, "of", len(files)
+        sys.stdout.write('\r>> Relabeling image %d/%d' % (count, len(files)))
+        sys.stdout.flush()
 
         filename = filename.replace("SegmentationClassPNG", "raw_segmentation", 1)
         img.save(filename)
         img.close()
+    sys.stdout.write('\n')
+    sys.stdout.flush()
 
 # Values after converting rgb segmap to grayscale
 # 1 (wall) <- 75
 # 2 (floor) <- 38
-
-cwd = os.getcwd()
 
 hallway_dir = cwd + "/Bontouch/hallway_dataset_voc/raw_segmentation"
 if(not os.path.isdir(hallway_dir)):

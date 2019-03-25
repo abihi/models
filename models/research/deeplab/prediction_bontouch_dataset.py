@@ -1,6 +1,6 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('datasets/ADE20K_relabeled/exp/train_on_trainval_set_mobilenetv2/export/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('good_sunrgbd_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
 
 import os
 import sys

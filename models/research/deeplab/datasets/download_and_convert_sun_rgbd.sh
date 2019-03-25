@@ -12,7 +12,7 @@ mkdir -p "${OUTPUT_DIR}"
 echo "Converting SUN-RGBD dataset..."
 python ./build_ade20k_data.py  \
   --train_image_folder="${WORK_DIR}/images/train/" \
-  --train_image_label_folder="${WORK_DIR}/annotations/train/" \
+  --train_image_label_folder="${WORK_DIR}/annotations/train_relabel/" \
   --val_image_folder="${WORK_DIR}/images/test/" \
-  --val_image_label_folder="${WORK_DIR}/annotations/test/" \
+  --val_image_label_folder="${WORK_DIR}/annotations/test_relabel/" \
   --output_dir="${OUTPUT_DIR}"
