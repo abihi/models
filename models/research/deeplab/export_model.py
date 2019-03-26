@@ -79,6 +79,7 @@ def _create_input_tensors():
   """
   # input_preprocess takes 4-D image tensor as input.
   input_image = tf.placeholder(tf.uint8, [1, None, None, 3], name=_INPUT_NAME)
+  #input_image = tf.placeholder(tf.float32, [1, None, None, 3], name=_INPUT_NAME)
   original_image_size = tf.shape(input_image)[1:3]
 
   # Squeeze the dimension in axis=0 since `preprocess_image_and_label` assumes
