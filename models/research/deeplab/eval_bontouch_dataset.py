@@ -11,21 +11,23 @@ from datasets import visualize_data
 cwd = os.getcwd()
 
 def evaluate(predictions, groundtruth, input_size):
+    iou_scores_wall = []
+    iou_scores_floor = []
     iou_scores = []
     count = 0
     for prediction, groundtruth in itertools.izip(predictions, groundtruth):
         org_file  = groundtruth.replace("raw_segmentation", "images", 1)
         org_file  = org_file.replace("png", "jpg", 1)
         org_image = Image.open(cwd+"/"+org_file)
-        # Converts img to grayscale
+
         im_pred = Image.open(prediction)
         im_gt = Image.open(groundtruth)
         count += 1
 
-        # Resize groundtruth image
+        # Resize groundtruth image, change target_size to (input_size, input_size) for tflite model
         width, height = im_gt.size
         resize_ratio = input_size / max(width, height)
-        target_size = (int(resize_ratio * width), int(resize_ratio * height))
+        target_size = (int(resize_ratio * width), int(resize_ratio * height)) #(input_size, input_size)
         resized_im_gt = im_gt.resize(target_size, Image.ANTIALIAS)
 
         pred_mat_floor = np.asarray(im_pred.getdata(), dtype=np.uint8).reshape((im_pred.size[1], im_pred.size[0]))
@@ -55,14 +57,16 @@ def evaluate(predictions, groundtruth, input_size):
 
         iou_score = (iou_score_wall + iou_score_floor) / 2
 
+        iou_scores_wall.append(iou_score_wall)
+        iou_scores_floor.append(iou_score_floor)
         iou_scores.append(iou_score)
 
         sys.stdout.write('\r>> Calculating IoU of image %d/%d' % (
             count, len(predictions)))
         sys.stdout.flush()
 
+        # Visualize IoU evaluation
         # if count % 25 == 0:
-        #     # Visualize comparison
         #     pred_mat_floor[pred_mat_floor == f_indx] = 128
         #     pred_mat_wall[pred_mat_wall == w_indx] = 235
         #     gt_mat_floor[gt_mat_floor == 2] = 128
@@ -75,9 +79,11 @@ def evaluate(predictions, groundtruth, input_size):
         #     visualize_data.vis_segmentation(org_image, img_pred_floor, img_gt_floor, 1)
     sys.stdout.write('\n')
     sys.stdout.flush()
-    return sum(iou_scores) / len(iou_scores)
+    print "mIoU (wall)", sum(iou_scores_wall) / len(iou_scores_wall)
+    print "mIoU (floor)", sum(iou_scores_floor) / len(iou_scores_floor)
+    print "mIoU =", sum(iou_scores) / len(iou_scores_wall)
 
 hallway_predictions = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/predictions/*.png"))
 hallway_groundtruth = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/raw_segmentation/*.png"))
-hallway_mIoU = evaluate(hallway_predictions, hallway_groundtruth, 257)
-print "mIoU =", hallway_mIoU
+print "Evaluating hallway segment: "
+evaluate(hallway_predictions, hallway_groundtruth, 257)

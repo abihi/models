@@ -1,6 +1,6 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('good_relabel_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
 
 import os
 import StringIO
@@ -17,15 +17,12 @@ import cv2
 
 ## Helper methods ##
 class DeepLabModel(object):
-  """Class to load deeplab model and run inference."""
-
   INPUT_TENSOR_NAME = 'ImageTensor:0'
   OUTPUT_TENSOR_NAME = 'SemanticPredictions:0'
   INPUT_SIZE = 257
   FROZEN_GRAPH_NAME = 'frozen_inference_graph'
 
   def __init__(self, tarball_path):
-    """Creates and loads pretrained deeplab model."""
     self.graph = tf.Graph()
 
     graph_def = None
@@ -48,15 +45,6 @@ class DeepLabModel(object):
     self.sess = tf.Session(graph=self.graph)
 
   def run(self, image):
-    """Runs inference on a single image.
-
-    Args:
-      image: A PIL.Image object, raw input image.
-
-    Returns:
-      resized_image: RGB image resized from original input image.
-      seg_map: Segmentation map of `resized_image`.
-    """
     width, height = image.size
     resize_ratio = 1.0 * self.INPUT_SIZE / max(width, height)
     target_size = (int(resize_ratio * width), int(resize_ratio * height))
@@ -110,7 +98,7 @@ def live_test():
         print rval
 
     	key = cv2.waitKey(1)
-    	if key == 27: 
+    	if key == 27:
     	    break
     cap.release()
     cv2.destroyAllWindows()

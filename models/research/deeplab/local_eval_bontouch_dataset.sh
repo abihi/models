@@ -10,7 +10,7 @@ export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
 
 # Set up the working environment.
 CURRENT_DIR=$(pwd)
-WORK_DIR="${CURRENT_DIR}/deeplab"
+WORK_DIR="${CURRENT_DIR}/deeplab"good_relabel_sunrgbd_mobilenet/frozen_inference_graph.pb
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
 #python "${WORK_DIR}"/model_test.py -v
@@ -32,6 +32,8 @@ cd "${WORK_DIR}"
 
 echo "Running prediction on Bontouch dataset"
 python prediction_bontouch_dataset.py
+#echo "Running tflite prediction on Bontouch dataset"
+#python test_tflite_model.py
 
 echo "Calculating mean intersection over union"
 python eval_bontouch_dataset.py

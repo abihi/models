@@ -38,7 +38,8 @@
 set -e
 
 CURRENT_DIR=$(pwd)
-WORK_DIR="./ADE20K"
+WORK_DIR="./ADE20K_relabeled"
+#WORK_DIR="./ADE20K"
 mkdir -p "${WORK_DIR}"
 cd "${WORK_DIR}"
 

@@ -98,19 +98,30 @@ _ADE20K_INFORMATION = DatasetDescriptor(
 
 _ADE20K_RELABELED_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 20210,  # num of samples in images/training
-        'val': 2000,  # num of samples in images/validation
+        'train': 20210,
+        'val': 2000,
     },
-    num_classes=4,
+    num_classes=3,
     ignore_label=255,
 )
 
 _SUN_RGBD_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 5285,  # num of samples in images/training
-        'val': 5050,  # num of samples in images/validation
+        'train': 7335,
+        'trainval': 1500,
+        'val': 1500,
     },
-    num_classes=14,
+    num_classes=13,
+    ignore_label=255,
+)
+
+_SUN_RGBD_RELABELED_INFORMATION = DatasetDescriptor(
+    splits_to_sizes={
+        'train': 7335,
+        'trainval': 1500,
+        'val': 1500,
+    },
+    num_classes=3,
     ignore_label=255,
 )
 
@@ -128,6 +139,7 @@ _DATASETS_INFORMATION = {
     'ade20k': _ADE20K_INFORMATION,
     'ade20k_relabeled': _ADE20K_RELABELED_INFORMATION,
     'sun_rgbd': _SUN_RGBD_INFORMATION,
+    'sun_rgbd_relabeled': _SUN_RGBD_RELABELED_INFORMATION,
     'hallway': _HALLWAY_INFORMATION,
 }
 

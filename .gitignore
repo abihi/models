@@ -104,4 +104,5 @@ models/research/deeplab/datasets/pascal_voc_seg/*
 models/research/deeplab/datasets/Bontouch/*
 models/research/deeplab/deeplab_model.tar.gz
 models/research/deeplab/datasets/SUN_RGBD/*
+models/research/deeplab/datasets/tensorboard/*
 

@@ -15,15 +15,12 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 def tflite_model(image):
-    # Test model on random input data.
     input_shape = input_details[0]['shape']
     input = image[None, :, :, :]
-    print input_shape
-    print input_details[0]['index']
-    print "input data shape: ", input.shape
+    #print "input data shape: ", input.shape
 
     input_test = np.array(np.random.random_sample(input_shape), dtype=np.float32)
-    print "input test shape: ", input_test.shape
+    #print "input test shape: ", input_test.shape
 
     input_data = np.array(input, dtype=np.uint8)
     interpreter.set_tensor(input_details[0]['index'], input_data)
@@ -31,7 +28,8 @@ def tflite_model(image):
     interpreter.invoke()
     output_data = interpreter.get_tensor(output_details[0]['index'])
     output_data = output_data[0, :, :, 0]
-    print "output data shape: ", output_data.shape
+    #print "output data shape: ", output_data.shape
+
     return output_data.astype(np.uint8)
 
 def resize(image, input_size):
@@ -50,7 +48,7 @@ def predictions(files):
         seg_map = tflite_model(resized_im)
 
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
-        visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
+        #visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
 
         filename_preds = filename.replace("images", "predictions", 1)
         filename_preds = filename_preds.replace("jpg", "png", 1)

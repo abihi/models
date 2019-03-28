@@ -1,8 +1,11 @@
 #!/bin/sh
 
-PB_FILE=good_relabel_sunrgbd_mobilenet/frozen_inference_graph.pb
+PB_FILE=trained_models/good_relabel_sunrgbd_mobilenet/frozen_inference_graph.pb
 TF_FILE=relabel_sunrgbd.tflite
 DIMENSION=257
+
+echo "# clear"
+rm -rf tensorboard/*
 
 echo "# import to tensorboard"
 python import_pb_to_tensorboard.py \
@@ -10,11 +13,9 @@ python import_pb_to_tensorboard.py \
   --log_dir="tensorboard/"
 
 echo "# clear"
-
 rm -rf *.tflite
 
-echo "# convert"
-
+echo "# convert pb to tflite"
 tflite_convert \
     --output_file=$TF_FILE \
     --graph_def_file=$PB_FILE \

@@ -1,6 +1,6 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('good_relabel_sunrgbd_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
 
 import os
 import sys
@@ -10,6 +10,8 @@ from datasets import visualize_data
 from PIL import Image
 import tensorflow as tf
 import numpy as np
+import glob
+import cv2
 
 class DeepLabModel(object):
   INPUT_TENSOR_NAME = 'ImageTensor:0'
@@ -65,7 +67,8 @@ def predictions(files):
         resized_im, seg_map = MODEL.run(im)
 
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
-        #visualize_data.vis_segmentation(resized_im, seg_map, 1)
+        resized_im = np.asarray(resized_im)
+        #visualize_data.vis_segmentation(resized_im, seg_map, seg_image, 1)
 
         filename_preds = filename.replace("images", "predictions", 1)
         filename_preds = filename_preds.replace("jpg", "png", 1)
@@ -75,7 +78,16 @@ def predictions(files):
         img_seg.save(filename_preds)
         img_seg.close()
 
-        img_vis=Image.fromarray(seg_image)
+        background = Image.fromarray(resized_im).convert("RGBA")
+        overlay = Image.fromarray(seg_image).convert("RGBA")
+
+        width, height = background.size
+        resize_ratio = 1.0 * 1920 / max(width, height)
+        target_size = (int(resize_ratio * width), int(resize_ratio * height))
+        img_vis = Image.blend(background, overlay, 0.5).resize(target_size, Image.ANTIALIAS)
+
+        #img_vis=Image.fromarray(overlay_im)
+        filename_vis = filename_vis.replace("jpg", "png", 1)
         img_vis.save(filename_vis)
         img_vis.close()
         im.close()
@@ -85,8 +97,6 @@ def predictions(files):
         sys.stdout.flush()
     sys.stdout.write('\n')
     sys.stdout.flush()
-
-import glob
 
 preds_dir = "datasets/Bontouch/hallway_dataset_voc/predictions"
 preds_vis = "datasets/Bontouch/hallway_dataset_voc/predictions_vis"
