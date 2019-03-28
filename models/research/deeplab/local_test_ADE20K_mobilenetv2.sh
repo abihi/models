@@ -1,28 +1,4 @@
-#!/bin/bash
-# Copyright 2018 The TensorFlow Authors All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-#
-# This script is used to run local test on ADE20K VOC 2012. Users could also
-# modify from this script for their use case.
-#
-# Usage:
-#   # From the tensorflow/models/research/deeplab directory.
-#   sh ./local_test.sh
-#
-#
-
+#!/usr/bin/env bash
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
@@ -74,26 +50,29 @@ ADE20K_DATASET="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/tfrecord"
 
 TRAIN_CROP_SIZE=257
 EVIS_CROP_SIZE=1201
-NUM_ITERATIONS=15000
+EVIS_CROP_SIZE_X=1921
+EVIS_CROP_SIZE_Y=1089
+NUM_ITERATIONS=10
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
   --model_variant="mobilenet_v2" \
-  --dataset="ade20k" \
+  --dataset="ade20k_relabeled" \
   --output_stride=16 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
-  --train_batch_size=1 \
+  --train_batch_size=4 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --fine_tune_batch_norm=false \
   --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}/model.ckpt" \
   --train_logdir="${TRAIN_LOGDIR}" \
   --dataset_dir="${ADE20K_DATASET}"
+  # --initialize_last_layer=false \
+  # --last_layers_contain_logits_only=true \
 
-  # Run evaluation. This performs eval over the full val split (2000 images) and
-  # will take a while.
+  # Run evaluation. This performs eval over the full val split (2000 images)
   # Using the provided checkpoint, one should expect mIOU=32.04%.
-  python "${WORK_DIR}"/eval.py \
+  python "${WORK_DIR}"/eval_old.py \
     --logtostderr \
     --eval_split="val" \
     --model_variant="mobilenet_v2" \
@@ -104,6 +83,19 @@ python "${WORK_DIR}"/train.py \
     --eval_logdir="${EVAL_LOGDIR}" \
     --dataset_dir="${ADE20K_DATASET}" \
     --max_number_of_evaluations=1
+
+  # echo "Eval on Hallway segment"
+  # python "${WORK_DIR}"/eval_old.py \
+  #   --logtostderr \
+  #   --eval_split="val" \
+  #   --model_variant="mobilenet_v2" \
+  #   --dataset="hallway" \
+  #   --eval_crop_size=${EVIS_CROP_SIZE_X} \
+  #   --eval_crop_size=${EVIS_CROP_SIZE_Y} \
+  #   --checkpoint_dir="${TRAIN_LOGDIR}" \
+  #   --eval_logdir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/eval" \
+  #   --dataset_dir="${WORK_DIR}/datasets/Bontouch/hallway_dataset_voc/tfrecord" \
+  #   --max_number_of_evaluations=1
 
   # Visualize the results.
   python "${WORK_DIR}"/vis.py \

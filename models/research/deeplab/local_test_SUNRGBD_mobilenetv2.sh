@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
@@ -37,9 +38,9 @@ mkdir -p "${VIS_LOGDIR}"
 mkdir -p "${EXPORT_DIR}"
 
 # Copy locally the trained checkpoint as the initial checkpoint.
-TF_INIT_ROOT="http://download.tensorflow.org/models"
-CKPT_NAME="deeplabv3_mnv2_ade20k_train_2018_12_03"
-TF_INIT_CKPT="deeplabv3_mnv2_ade20k_train_2018_12_03.tar.gz"
+TF_INIT_ROOT="https://storage.googleapis.com/mobilenet_v2/checkpoints"
+CKPT_NAME="mobilenet_v2_1.0_192"
+TF_INIT_CKPT="mobilenet_v2_1.0_192.tgz"
 cd "${INIT_FOLDER}"
 wget -nd -c "${TF_INIT_ROOT}/${TF_INIT_CKPT}"
 tar -xf "${TF_INIT_CKPT}"
@@ -50,7 +51,7 @@ SUNRGBD_DATASET="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/tfrecord"
 TRAIN_CROP_SIZE=257
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
-NUM_ITERATIONS=10
+NUM_ITERATIONS=100
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \

@@ -94,7 +94,7 @@ python "${WORK_DIR}"/train.py \
 # Run evaluation. This performs eval over the full val split (1449 images) and
 # will take a while.
 # Using the provided checkpoint, one should expect mIOU=82.20%.
-python "${WORK_DIR}"/eval.py \
+python "${WORK_DIR}"/eval_old.py \
   --logtostderr \
   --eval_split="val" \
   --model_variant="xception_65" \
