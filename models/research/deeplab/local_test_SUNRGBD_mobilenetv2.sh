@@ -65,7 +65,7 @@ python "${WORK_DIR}"/train.py \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
   --fine_tune_batch_norm=false \
-  --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}/model.ckpt" \
+  --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}.ckpt" \
   --train_logdir="${TRAIN_LOGDIR}" \
   --dataset_dir="${SUNRGBD_DATASET}"
 
