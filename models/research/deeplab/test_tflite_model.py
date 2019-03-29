@@ -7,7 +7,7 @@ from PIL import Image
 from datasets import visualize_data
 
 # Load TFLite model and allocate tensors.
-interpreter = tf.contrib.lite.Interpreter(model_path="relabel_sunrgbd.tflite")
+interpreter = tf.contrib.lite.Interpreter(model_path="mobilenet_v2_deeplab_v3_256_myquant.tflite")
 interpreter.allocate_tensors()
 
 # Get input and output tensors.
@@ -22,13 +22,14 @@ def tflite_model(image):
     input_test = np.array(np.random.random_sample(input_shape), dtype=np.float32)
     #print "input test shape: ", input_test.shape
 
-    input_data = np.array(input, dtype=np.uint8)
+    input_data = np.array(input_test, dtype=np.uint8)
     interpreter.set_tensor(input_details[0]['index'], input_data)
 
     interpreter.invoke()
     output_data = interpreter.get_tensor(output_details[0]['index'])
-    output_data = output_data[0, :, :, 0]
-    #print "output data shape: ", output_data.shape
+    #output_data = output_data[0, :, :, 0]
+    print "output data shape: ", output_data.shape
+    print output_details[0]['name']
 
     return output_data.astype(np.uint8)
 
@@ -48,7 +49,7 @@ def predictions(files):
         seg_map = tflite_model(resized_im)
 
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
-        #visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
+        visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
 
         filename_preds = filename.replace("images", "predictions", 1)
         filename_preds = filename_preds.replace("jpg", "png", 1)

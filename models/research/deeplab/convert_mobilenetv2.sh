@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PB_FILE=trained_models/good_relabel_sunrgbd_mobilenet/frozen_inference_graph.pb
+PB_FILE=trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb
 TF_FILE=relabel_sunrgbd.tflite
 DIMENSION=257
 
@@ -13,15 +13,15 @@ python import_pb_to_tensorboard.py \
   --log_dir="tensorboard/"
 
 echo "# clear"
-rm -rf *.tflite
+rm -rf ${TF_FILE}
 
 echo "# convert pb to tflite"
 tflite_convert \
     --output_file=$TF_FILE \
     --graph_def_file=$PB_FILE \
     --output_format=TFLITE \
-    --input_arrays=ImageTensor \
-    --output_arrays=RawSemanticPredictions \
+    --input_arrays=MobilenetV2/MobilenetV2/input \
+    --output_arrays=ArgMax \
     --input_shapes=1,${DIMENSION},${DIMENSION},3 \
     --inference_input_type=QUANTIZED_UINT8 \
     --inference_type=FLOAT \
