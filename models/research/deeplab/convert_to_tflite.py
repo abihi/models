@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-graph_def_file = "/home/abihi/tf/models/research/deeplab/good_relabel_sunrgbd_mobilenet/frozen_inference_graph.pb"
-input_arrays = ["ImageTensor"]
-output_arrays = ["SemanticPredictions"]
+graph_def_file = "/home/abihi/tf/models/research/deeplab/trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb"
+input_arrays = ["MobilenetV2/MobilenetV2/input"]
+output_arrays = ["ArgMax"]
 shapes = {
   "ImageTensor": [1,257,257,3]
 }

@@ -21,12 +21,16 @@ tflite_convert \
     --graph_def_file=$PB_FILE \
     --output_format=TFLITE \
     --input_arrays=MobilenetV2/MobilenetV2/input \
-    --output_arrays=ArgMax \
+    --output_arrays=RawSemanticPredictions \
     --input_shapes=1,${DIMENSION},${DIMENSION},3 \
     --inference_input_type=QUANTIZED_UINT8 \
     --inference_type=FLOAT \
-    --allow_custom_ops \
     --mean_values=128 \
     --std_dev_values=127 \
-    --default_ranges_min=-1 \
-    --default_ranges_max=1 \
+    --post_training_quantize \
+
+    # --default_ranges_min=-1 \
+    # --default_ranges_max=1 \
+    # --converter_mode=TOCO_FLEX \
+
+cp relabel_sunrgbd.tflite /home/abihi/JejuNet/android/app/src/main/assets/new_relabel_sunrgbd.tflite

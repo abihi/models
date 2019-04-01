@@ -7,7 +7,7 @@ from PIL import Image
 from datasets import visualize_data
 
 # Load TFLite model and allocate tensors.
-interpreter = tf.contrib.lite.Interpreter(model_path="mobilenet_v2_deeplab_v3_256_myquant.tflite")
+interpreter = tf.contrib.lite.Interpreter(model_path="relabel_sunrgbd.tflite")
 interpreter.allocate_tensors()
 
 # Get input and output tensors.
@@ -17,19 +17,21 @@ output_details = interpreter.get_output_details()
 def tflite_model(image):
     input_shape = input_details[0]['shape']
     input = image[None, :, :, :]
-    #print "input data shape: ", input.shape
+    print "input data shape: ", input.shape
+    #print input_details[0]['name']
 
-    input_test = np.array(np.random.random_sample(input_shape), dtype=np.float32)
+    #input_test = np.array(np.random.random_sample(input_shape), dtype=np.float32)
     #print "input test shape: ", input_test.shape
 
-    input_data = np.array(input_test, dtype=np.uint8)
+    input_data = np.array(input, dtype=np.uint8)
     interpreter.set_tensor(input_details[0]['index'], input_data)
 
     interpreter.invoke()
     output_data = interpreter.get_tensor(output_details[0]['index'])
-    #output_data = output_data[0, :, :, 0]
-    print "output data shape: ", output_data.shape
-    print output_details[0]['name']
+    #print output_data
+    output_data = output_data[0, :, :, 0]
+    #print "output data shape: ", output_data.shape
+    #print output_details[0]['name']
 
     return output_data.astype(np.uint8)
 
