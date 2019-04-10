@@ -7,17 +7,19 @@ from PIL import Image
 from datasets import visualize_data
 
 # Load TFLite model and allocate tensors.
-interpreter = tf.contrib.lite.Interpreter(model_path="relabel_sunrgbd.tflite")
+#interpreter = tf.contrib.lite.Interpreter(model_path="relabel_sunrgbd.tflite")
+interpreter = tf.lite.Interpreter(model_path="relabel_sunrgbd.tflite")
 interpreter.allocate_tensors()
 
 # Get input and output tensors.
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
+import time
 def tflite_model(image):
     input_shape = input_details[0]['shape']
     input = image[None, :, :, :]
-    print "input data shape: ", input.shape
+    #print "input data shape: ", input.shape
     #print input_details[0]['name']
 
     #input_test = np.array(np.random.random_sample(input_shape), dtype=np.float32)
@@ -26,14 +28,16 @@ def tflite_model(image):
     input_data = np.array(input, dtype=np.uint8)
     interpreter.set_tensor(input_details[0]['index'], input_data)
 
+    start = time.time()
     interpreter.invoke()
+    end = time.time()
+
     output_data = interpreter.get_tensor(output_details[0]['index'])
-    #print output_data
-    output_data = output_data[0, :, :, 0]
+    output_data = output_data[0, :, :]
     #print "output data shape: ", output_data.shape
     #print output_details[0]['name']
 
-    return output_data.astype(np.uint8)
+    return output_data.astype(np.uint8), (end - start)*1000
 
 def resize(image, input_size):
     width, height = image.size
@@ -48,10 +52,10 @@ def predictions(files):
         im = Image.open(filename)
         count += 1
         resized_im = resize(im, 257)
-        seg_map = tflite_model(resized_im)
+        seg_map, inference_time = tflite_model(resized_im)
 
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
-        visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
+        #visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
 
         filename_preds = filename.replace("images", "predictions", 1)
         filename_preds = filename_preds.replace("jpg", "png", 1)
@@ -66,8 +70,8 @@ def predictions(files):
         img_vis.close()
         im.close()
 
-        sys.stdout.write('\r>> Running prediction on image %d/%d' % (
-            count, len(files)))
+        sys.stdout.write('\r>> Running prediction on image %d/%d, inference time %d ms' % (
+            count, len(files), inference_time))
         sys.stdout.flush()
     sys.stdout.write('\n')
     sys.stdout.flush()

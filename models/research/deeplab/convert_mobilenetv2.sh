@@ -16,21 +16,19 @@ echo "# clear"
 rm -rf ${TF_FILE}
 
 echo "# convert pb to tflite"
-tflite_convert \
-    --output_file=$TF_FILE \
-    --graph_def_file=$PB_FILE \
-    --output_format=TFLITE \
-    --input_arrays=MobilenetV2/MobilenetV2/input \
-    --output_arrays=RawSemanticPredictions \
-    --input_shapes=1,${DIMENSION},${DIMENSION},3 \
-    --inference_input_type=QUANTIZED_UINT8 \
-    --inference_type=FLOAT \
-    --mean_values=128 \
-    --std_dev_values=127 \
-    --post_training_quantize \
+# tflite_convert \
+#     --output_file=$TF_FILE \
+#     --graph_def_file=$PB_FILE \
+#     --output_format=TFLITE \
+#     --input_arrays=MobilenetV2/MobilenetV2/input \
+#     --output_arrays=ArgMax \
+#     --input_shapes=1,${DIMENSION},${DIMENSION},3 \
+#     --inference_input_type=QUANTIZED_UINT8 \
+#     --inference_type=FLOAT \
+#     --mean_values=128 \
+#     --std_dev_values=127 \
+#     --post_training_quantize \
 
-    # --default_ranges_min=-1 \
-    # --default_ranges_max=1 \
-    # --converter_mode=TOCO_FLEX \
+python convert_to_tflite.py
 
 cp relabel_sunrgbd.tflite /home/abihi/JejuNet/android/app/src/main/assets/new_relabel_sunrgbd.tflite
