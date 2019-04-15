@@ -79,11 +79,16 @@ def evaluate(predictions, groundtruth, input_size):
         #     visualize_data.vis_segmentation(org_image, img_pred_floor, img_gt_floor, 1)
     sys.stdout.write('\n')
     sys.stdout.flush()
-    print "mIoU (wall)", sum(iou_scores_wall) / len(iou_scores_wall)
-    print "mIoU (floor)", sum(iou_scores_floor) / len(iou_scores_floor)
-    print "mIoU =", sum(iou_scores) / len(iou_scores_wall)
+    mIoU_wall = sum(iou_scores_wall) / len(iou_scores_wall)
+    mIoU_floor= sum(iou_scores_floor) / len(iou_scores_floor)
+    mIoU = sum(iou_scores) / len(iou_scores_wall)
+    return mIoU_wall, mIoU_floor, mIoU
 
 hallway_predictions = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/predictions/*.png"))
 hallway_groundtruth = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/raw_segmentation/*.png"))
 print "Evaluating hallway segment: "
-evaluate(hallway_predictions, hallway_groundtruth, 257)
+mIoU_wall, mIoU_floor, mIoU = evaluate(hallway_predictions, hallway_groundtruth, 257)
+
+print "mIoU(wall)=", mIoU_wall
+print "mIoU(floor)=", mIoU_floor
+print "mIoU=", mIoU

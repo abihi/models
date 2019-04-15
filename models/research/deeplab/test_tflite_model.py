@@ -55,7 +55,7 @@ def predictions(files):
         seg_map, inference_time = tflite_model(resized_im)
 
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
-        #visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
+        visualize_data.vis_segmentation(im, resized_im, seg_map, 1)
 
         filename_preds = filename.replace("images", "predictions", 1)
         filename_preds = filename_preds.replace("jpg", "png", 1)

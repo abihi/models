@@ -13,6 +13,12 @@ import numpy as np
 import glob
 import cv2
 
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+
+flags.DEFINE_string('filetype', 'jpg', 'Image filetype')
+flags.DEFINE_string('path', 'datasets/Bontouch/hallway_dataset/', 'Path to bontouch video segment')
+
 class DeepLabModel(object):
   INPUT_TENSOR_NAME = 'ImageTensor:0'
   OUTPUT_TENSOR_NAME = 'SemanticPredictions:0'
@@ -68,7 +74,6 @@ def predictions(files):
 
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
         resized_im = np.asarray(resized_im)
-        #visualize_data.vis_segmentation(resized_im, seg_map, seg_image, 1)
 
         filename_preds = filename.replace("images", "predictions", 1)
         filename_preds = filename_preds.replace("jpg", "png", 1)
@@ -85,8 +90,8 @@ def predictions(files):
         resize_ratio = 1.0 * 1920 / max(width, height)
         target_size = (int(resize_ratio * width), int(resize_ratio * height))
         img_vis = Image.blend(background, overlay, 0.5).resize(target_size, Image.ANTIALIAS)
+        #visualize_data.vis_segmentation(resized_im, seg_map, img_vis, 1)
 
-        #img_vis=Image.fromarray(overlay_im)
         filename_vis = filename_vis.replace("jpg", "png", 1)
         img_vis.save(filename_vis)
         img_vis.close()
@@ -98,14 +103,15 @@ def predictions(files):
     sys.stdout.write('\n')
     sys.stdout.flush()
 
-preds_dir = "datasets/Bontouch/hallway_dataset_voc/predictions"
-preds_vis = "datasets/Bontouch/hallway_dataset_voc/predictions_vis"
-hallway_files = glob.glob("/home/abihi/tf/models/research/deeplab/datasets/Bontouch/hallway_dataset_voc/images/*.jpg")
+preds_dir = FLAGS.path + "predictions"
+preds_vis = FLAGS.path + "predictions_vis"
+print FLAGS.path + "images/*." + FLAGS.filetype
+files = glob.glob(FLAGS.path + "images/*." + FLAGS.filetype)
+
 if not os.path.isdir(preds_dir):
     os.mkdir(preds_dir)
 
 if not os.path.isdir(preds_vis):
     os.mkdir(preds_vis)
 
-print "Running predictions on hallway segment"
-predictions(hallway_files)
+predictions(files)
