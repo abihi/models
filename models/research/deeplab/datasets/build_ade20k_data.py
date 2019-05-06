@@ -34,6 +34,16 @@ tf.app.flags.DEFINE_string(
     'Folder containing annotations for trainng images')
 
 tf.app.flags.DEFINE_string(
+    'trainval_image_folder',
+    './ADE20K/ADEChallengeData2016/images/trainval',
+    'Folder containing trainng images')
+    
+tf.app.flags.DEFINE_string(
+    'trainval_image_label_folder',
+    './ADE20K/ADEChallengeData2016/annotations/trainval',
+    'Folder containing annotations for trainng images')
+
+tf.app.flags.DEFINE_string(
     'val_image_folder',
     './ADE20K/ADEChallengeData2016/images/validation',
     'Folder containing validation images')
@@ -47,10 +57,7 @@ tf.app.flags.DEFINE_string(
     'output_dir', './ADE20K/tfrecord',
     'Path to save converted tfrecord of Tensorflow example')
 
-_NUM_SHARDS = 4
-
-
-def _convert_dataset(dataset_split, dataset_dir, dataset_label_dir):
+def _convert_dataset(dataset_split, dataset_dir, dataset_label_dir, _NUM_SHARDS):
   """Converts the ADE20k dataset into into tfrecord format.
 
   Args:
@@ -109,10 +116,9 @@ def _convert_dataset(dataset_split, dataset_dir, dataset_label_dir):
 
 def main(unused_argv):
   tf.gfile.MakeDirs(FLAGS.output_dir)
-  _convert_dataset(
-      'train', FLAGS.train_image_folder, FLAGS.train_image_label_folder)
-  _convert_dataset('val', FLAGS.val_image_folder, FLAGS.val_image_label_folder)
-
+  _convert_dataset('train', FLAGS.train_image_folder, FLAGS.train_image_label_folder, 4)
+  _convert_dataset('trainval', FLAGS.trainval_image_folder, FLAGS.trainval_image_label_folder, 1)
+  _convert_dataset('val', FLAGS.val_image_folder, FLAGS.val_image_label_folder, 4)
 
 if __name__ == '__main__':
   tf.app.run()

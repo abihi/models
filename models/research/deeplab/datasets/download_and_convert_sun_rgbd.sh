@@ -13,6 +13,8 @@ echo "Converting SUN-RGBD dataset..."
 python ./build_ade20k_data.py  \
   --train_image_folder="${WORK_DIR}/images/train/" \
   --train_image_label_folder="${WORK_DIR}/annotations/train/" \
+  --trainval_image_folder="${WORK_DIR}/images/trainval/" \
+  --trainval_image_label_folder="${WORK_DIR}/annotations/trainval/" \
   --val_image_folder="${WORK_DIR}/images/test/" \
   --val_image_label_folder="${WORK_DIR}/annotations/test/" \
   --output_dir="${OUTPUT_DIR}"

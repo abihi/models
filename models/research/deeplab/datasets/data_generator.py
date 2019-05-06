@@ -107,9 +107,9 @@ _ADE20K_RELABELED_INFORMATION = DatasetDescriptor(
 
 _SUN_RGBD_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 7335,
-        'trainval': 1500,
-        'val': 1500,
+        'train': 5281,
+        'trainval': 4,
+        'val': 5050,
     },
     num_classes=13,
     ignore_label=255,
@@ -117,19 +117,10 @@ _SUN_RGBD_INFORMATION = DatasetDescriptor(
 
 _SUN_RGBD_RELABELED_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 7335,
-        'trainval': 1500,
-        'val': 1500,
+        'train': 5285,
+        'val': 5050,
     },
     num_classes=3,
-    ignore_label=255,
-)
-
-_HALLWAY_INFORMATION = DatasetDescriptor(
-    splits_to_sizes={
-        'val': 308,
-    },
-    num_classes=4,
     ignore_label=255,
 )
 
@@ -140,7 +131,6 @@ _DATASETS_INFORMATION = {
     'ade20k_relabeled': _ADE20K_RELABELED_INFORMATION,
     'sun_rgbd': _SUN_RGBD_INFORMATION,
     'sun_rgbd_relabeled': _SUN_RGBD_RELABELED_INFORMATION,
-    'hallway': _HALLWAY_INFORMATION,
 }
 
 # Default file pattern of TFRecord of TensorFlow Example.
@@ -377,6 +367,25 @@ class Dataset(object):
 
     dataset = dataset.batch(self.batch_size).prefetch(self.batch_size)
     return dataset.make_one_shot_iterator()
+
+  def get_initializable_iterator(self):
+    files = self._get_all_files()
+
+    dataset = (
+        tf.data.TFRecordDataset(files, num_parallel_reads=self.num_readers)
+        .map(self._parse_function, num_parallel_calls=self.num_readers)
+        .map(self._preprocess_image, num_parallel_calls=self.num_readers))
+
+    if self.should_shuffle:
+       dataset = dataset.shuffle(buffer_size=100)
+
+    if self.should_repeat:
+       dataset = dataset.repeat()  # Repeat forever for training.
+    else:
+       dataset = dataset.repeat(1)
+
+    dataset = dataset.batch(self.batch_size).prefetch(self.batch_size)
+    return dataset.make_initializable_iterator()
 
   def _get_all_files(self):
     """Gets all the files to read data from.

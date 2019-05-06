@@ -13,7 +13,7 @@ CURRENT_DIR=$(pwd)
 WORK_DIR="${CURRENT_DIR}/deeplab"
 
 # Run model_test first to make sure the PYTHONPATH is correctly set.
-python "${WORK_DIR}"/model_test.py -v
+#python "${WORK_DIR}"/model_test.py -v
 
 # Go to datasets folder and download SUNRGBD segmentation dataset.
 DATASET_DIR="datasets"
@@ -48,19 +48,20 @@ cd "${CURRENT_DIR}"
 
 SUNRGBD_DATASET="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/tfrecord"
 
-TRAIN_CROP_SIZE=257
+TRAIN_CROP_SIZE=256
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
-NUM_ITERATIONS=100
+NUM_ITERATIONS=10000
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
+  --trainval_split="trainval" \
   --model_variant="mobilenet_v2" \
   --dataset="sun_rgbd" \
   --output_stride=16 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
-  --train_batch_size=4 \
+  --train_batch_size=1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
@@ -104,7 +105,7 @@ python "${WORK_DIR}"/train.py \
     --checkpoint_path="${CKPT_PATH}" \
     --export_path="${EXPORT_PATH}" \
     --model_variant="mobilenet_v2" \
-    --num_classes=14 \
+    --num_classes=13 \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --inference_scales=1.0
