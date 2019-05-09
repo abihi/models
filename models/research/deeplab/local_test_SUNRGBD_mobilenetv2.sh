@@ -18,7 +18,7 @@ WORK_DIR="${CURRENT_DIR}/deeplab"
 # Go to datasets folder and download SUNRGBD segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-sh download_and_convert_sun_rgbd.sh
+#sh download_and_convert_sun_rgbd.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
@@ -52,7 +52,7 @@ TRAIN_CROP_SIZE=256
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
 NUM_ITERATIONS=10000
-python "${WORK_DIR}"/train.py \
+python "${WORK_DIR}"/train_old.py \
   --logtostderr \
   --train_split="train" \
   --trainval_split="trainval" \
