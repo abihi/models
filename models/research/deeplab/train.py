@@ -16,14 +16,18 @@
 
 See model.py for more details and usage.
 """
+from __future__ import print_function
 
 import six
+import math
 import tensorflow as tf
+import numpy as np
 from tensorflow.python.ops import math_ops
 from deeplab import common
 from deeplab import model
 from deeplab.datasets import data_generator
 from deeplab.utils import train_utils
+
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -186,6 +190,9 @@ flags.DEFINE_string('dataset', 'pascal_voc_seg',
 
 flags.DEFINE_string('train_split', 'train',
                     'Which split of the dataset to be used for training')
+
+flags.DEFINE_string('trainval_split', 'trainval',
+                    'Which split is used to training-validation')
 
 flags.DEFINE_string('dataset_dir', None, 'Where the dataset reside.')
 
@@ -414,12 +421,103 @@ def _train_deeplab_model(iterator, num_of_classes, ignore_label):
 
   return train_tensor, summary_op
 
+def val_tower_loss(iterator, num_of_classes, ignore_label):
+  with tf.name_scope('val_loss') as scope:
+    total_loss = _tower_loss(
+        iterator=iterator,
+        num_of_classes=num_of_classes,
+        ignore_label=ignore_label,
+        scope=scope,
+        reuse_variable=0)
+  total_loss = tf.print(total_loss, [total_loss], 'total val loss :')
+  return total_loss
+
+def _val_miou(dataset, image, label, num_of_classes, ignore_label):
+    model_options = common.ModelOptions(
+        outputs_to_num_classes={common.OUTPUT_TYPE: dataset.num_of_classes},
+        crop_size=FLAGS.train_crop_size,
+        atrous_rates=FLAGS.atrous_rates,
+        output_stride=FLAGS.output_stride)
+
+    predictions = model.predict_labels(image, model_options,
+                                       image_pyramid=FLAGS.image_pyramid)
+    predictions = predictions[common.OUTPUT_TYPE]
+    predictions = tf.reshape(predictions, shape=[-1])
+    labels = tf.reshape(label, shape=[-1])
+    weights = tf.to_float(tf.not_equal(labels, dataset.ignore_label))
+
+    labels = tf.where(
+        tf.equal(labels, dataset.ignore_label), tf.zeros_like(labels), labels)
+
+    predictions_tag = 'miou'
+    for eval_scale in [1.0]:
+      predictions_tag += '_' + str(eval_scale)
+
+    metric_map = {}
+
+    indices = tf.squeeze( tf.where( tf.less_equal(labels, dataset.num_of_classes-1) ), 1 )
+    labels = tf.cast( tf.gather( labels, indices ), tf.int32 )
+    predictions = tf.gather( predictions, indices )
+
+    metric_map[predictions_tag] = tf.metrics.mean_iou(
+        predictions, labels, dataset.num_of_classes, weights=weights)
+
+    metrics_to_values, metrics_to_updates = (
+        tf.contrib.metrics.aggregate_metric_map(metric_map))
+
+    return metrics_to_values, metrics_to_updates
+
+def _val_loss(dataset, image, label, num_of_classes, ignore_label):
+    outputs_to_num_classes = {common.OUTPUT_TYPE: dataset.num_of_classes}
+    model_options = common.ModelOptions(
+        outputs_to_num_classes=outputs_to_num_classes,
+        crop_size=FLAGS.train_crop_size,
+        atrous_rates=FLAGS.atrous_rates,
+        output_stride=FLAGS.output_stride)
+
+    outputs_to_scales_to_logits = model.multi_scale_logits(
+        image,
+        model_options=model_options,
+        image_pyramid=FLAGS.image_pyramid,
+        weight_decay=FLAGS.weight_decay,
+        is_training=True,
+        fine_tune_batch_norm=FLAGS.fine_tune_batch_norm,
+        nas_training_hyper_parameters={
+            'drop_path_keep_prob': FLAGS.drop_path_keep_prob,
+            'total_training_steps': FLAGS.training_number_of_steps,
+        })
+
+    with tf.name_scope('val_loss') as scope:
+      for output, num_classes in six.iteritems(outputs_to_num_classes):
+        train_utils.add_softmax_cross_entropy_loss_for_each_scale(
+            outputs_to_scales_to_logits[output],
+            label,
+            num_classes,
+            ignore_label,
+            loss_weight=1.0,
+            upsample_logits=FLAGS.upsample_logits,
+            hard_example_mining_step=FLAGS.hard_example_mining_step,
+            top_k_percent_pixels=FLAGS.top_k_percent_pixels,
+            scope=scope)
+
+      losses = tf.losses.get_losses(scope=scope)
+      for loss in losses:
+        tf.summary.scalar('Val losses/%s' % loss.op.name, loss)
+
+      regularization_loss = tf.losses.get_regularization_loss(scope=scope)
+      tf.summary.scalar('Val losses/%s' % regularization_loss.op.name,
+                      regularization_loss)
+      total_loss = tf.add_n([tf.add_n(losses), regularization_loss])
+
+    return total_loss
 
 def main(unused_argv):
   tf.logging.set_verbosity(tf.logging.INFO)
 
   tf.gfile.MakeDirs(FLAGS.train_logdir)
   tf.logging.info('Training on %s set', FLAGS.train_split)
+
+  losses = []
 
   graph = tf.Graph()
   with graph.as_default():
@@ -446,9 +544,44 @@ def main(unused_argv):
           should_shuffle=True,
           should_repeat=True)
 
+      vdataset = data_generator.Dataset(
+          dataset_name=FLAGS.dataset,
+          split_name=FLAGS.trainval_split,
+          dataset_dir=FLAGS.dataset_dir,
+          batch_size=FLAGS.trainval_batch_size,
+          crop_size=FLAGS.train_crop_size,
+          min_resize_value=FLAGS.min_resize_value,
+          max_resize_value=FLAGS.max_resize_value,
+          resize_factor=FLAGS.resize_factor,
+          min_scale_factor=FLAGS.min_scale_factor,
+          max_scale_factor=FLAGS.max_scale_factor,
+          scale_factor_step_size=FLAGS.scale_factor_step_size,
+          model_variant=FLAGS.model_variant,
+          num_readers=2,
+          is_training=True,
+          should_shuffle=False,
+          should_repeat=False)
+
+      viterator = vdataset.get_one_shot_iterator()
+      init_viterator = vdataset.get_initializable_iterator()
+      next_element = viterator.get_next()
+      init_next_element = init_viterator.get_next()
+
+      #image input: Tensor("IteratorGetNext_1:1", shape=(?, 256, 256, 3), dtype=float32)
+      val_image = tf.placeholder(tf.float32, shape=(None, FLAGS.train_crop_size[0], FLAGS.train_crop_size[1], 3))
+      #label input: Tensor("IteratorGetNext_1:3", shape=(?, 256, 256, 1), dtype=int32)
+      val_label = tf.placeholder(tf.int32,   shape=(None, FLAGS.train_crop_size[0], FLAGS.train_crop_size[1], 1))
+
       train_tensor, summary_op = _train_deeplab_model(
           dataset.get_one_shot_iterator(), dataset.num_of_classes,
           dataset.ignore_label)
+
+      val_tensor = _val_loss(
+        dataset=vdataset,
+        image=val_image,
+        label=val_label,
+        num_of_classes=vdataset.num_of_classes,
+        ignore_label=vdataset.ignore_label)
 
       # Soft placement allows placing on CPU ops without GPU implementation.
       session_config = tf.ConfigProto(
@@ -489,8 +622,43 @@ def main(unused_argv):
             save_checkpoint_secs=FLAGS.save_interval_secs,
             hooks=[stop_hook]) as sess:
           while not sess.should_stop():
+            step = sess.run(tf.train.get_global_step())
             sess.run([train_tensor])
+            if step % 20 == 0:
+              print("Current step ", step)
+              count_validation = 0
+              val_mious = []
+              val_losses = []
+              sess.run(init_viterator.initializer)
+              while True:
+                try:
+                  val_element = sess.run(init_next_element)
+                  val_loss = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
+                                  val_label: val_element[common.LABEL]})
+                  val_losses.append(val_loss)
+                  count_validation += 1
+                  print('  {} [validation] {} {}'.format(count_validation, val_loss, val_element[common.IMAGE_NAME]))
+                except tf.errors.OutOfRangeError:
+                  total_val_loss = sum(val_losses)/len(val_losses)
+                  print('  {} [validation] {}'.format(count_validation, total_val_loss))
+                  break
 
+              # validate = True
+              # while validate:
+              #   val_element = sess.run(next_element)
+              #   # val_miou, miou_updates = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
+              #   #                     val_label: val_element[common.LABEL]})
+              #   # val_mious.append(val_miou['miou_1.0'])
+              #   val_loss = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
+              #                       val_label: val_element[common.LABEL]})
+              #   val_losses.append(val_loss)
+              #   count_validation += 1
+              #   if count_validation >= 4:
+              #     #total_val_miou = sum(val_mious)/len(val_mious)
+              #     #print('  {} [validation mIoU] {}'.format(count_validation, total_val_mious))
+              #     total_val_loss = sum(val_losses)/len(val_losses)
+              #     print('  {} [validation] {}'.format(count_validation, total_val_loss))
+              #     validate = False
 
 if __name__ == '__main__':
   flags.mark_flag_as_required('train_logdir')

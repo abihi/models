@@ -62,6 +62,7 @@ python "${WORK_DIR}"/train_old.py \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_batch_size=1 \
+  --trainval_batch_size=1 \
   --training_number_of_steps="${NUM_ITERATIONS}" \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
