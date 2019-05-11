@@ -192,10 +192,11 @@ flags.DEFINE_string('train_split', 'train',
                     'Which split of the dataset to be used for training')
 
 flags.DEFINE_string('trainval_split', 'trainval',
-                    'Which split is used to training-validation')
+                    'Which split is used for training validation')
 
 flags.DEFINE_string('dataset_dir', None, 'Where the dataset reside.')
 
+flags.DEFINE_integer('trainval_batch_size', 1, 'Validation set batch size')
 
 def _build_deeplab(iterator, outputs_to_num_classes, ignore_label):
   """Builds a clone of DeepLab.
@@ -421,16 +422,6 @@ def _train_deeplab_model(iterator, num_of_classes, ignore_label):
 
   return train_tensor, summary_op
 
-def val_tower_loss(iterator, num_of_classes, ignore_label):
-  with tf.name_scope('val_loss') as scope:
-    total_loss = _tower_loss(
-        iterator=iterator,
-        num_of_classes=num_of_classes,
-        ignore_label=ignore_label,
-        scope=scope,
-        reuse_variable=0)
-  total_loss = tf.print(total_loss, [total_loss], 'total val loss :')
-  return total_loss
 
 def _val_miou(dataset, image, label, num_of_classes, ignore_label):
     model_options = common.ModelOptions(
@@ -466,6 +457,7 @@ def _val_miou(dataset, image, label, num_of_classes, ignore_label):
         tf.contrib.metrics.aggregate_metric_map(metric_map))
 
     return metrics_to_values, metrics_to_updates
+
 
 def _val_loss(dataset, image, label, num_of_classes, ignore_label):
     outputs_to_num_classes = {common.OUTPUT_TYPE: dataset.num_of_classes}
@@ -507,17 +499,30 @@ def _val_loss(dataset, image, label, num_of_classes, ignore_label):
       regularization_loss = tf.losses.get_regularization_loss(scope=scope)
       tf.summary.scalar('Val losses/%s' % regularization_loss.op.name,
                       regularization_loss)
+
       total_loss = tf.add_n([tf.add_n(losses), regularization_loss])
+      tf.summary.scalar('total_validation_loss', total_loss)
 
     return total_loss
+
+
+patience_count = 0
+def early_stopping(epoch, val_loss_per_epoch, min_delta, patience):
+  global patience_count
+  if val_loss_per_epoch[epoch-1] - val_loss_per_epoch[epoch] > min_delta:
+    patience_count = 0
+  else:
+    patience_count += 1
+
+  if patience_count > patience:
+    print("early stopping...")
+
 
 def main(unused_argv):
   tf.logging.set_verbosity(tf.logging.INFO)
 
   tf.gfile.MakeDirs(FLAGS.train_logdir)
   tf.logging.info('Training on %s set', FLAGS.train_split)
-
-  losses = []
 
   graph = tf.Graph()
   with graph.as_default():
@@ -562,14 +567,10 @@ def main(unused_argv):
           should_shuffle=False,
           should_repeat=False)
 
-      viterator = vdataset.get_one_shot_iterator()
-      init_viterator = vdataset.get_initializable_iterator()
+      viterator = vdataset.get_initializable_iterator()
       next_element = viterator.get_next()
-      init_next_element = init_viterator.get_next()
 
-      #image input: Tensor("IteratorGetNext_1:1", shape=(?, 256, 256, 3), dtype=float32)
       val_image = tf.placeholder(tf.float32, shape=(None, FLAGS.train_crop_size[0], FLAGS.train_crop_size[1], 3))
-      #label input: Tensor("IteratorGetNext_1:3", shape=(?, 256, 256, 1), dtype=int32)
       val_label = tf.placeholder(tf.int32,   shape=(None, FLAGS.train_crop_size[0], FLAGS.train_crop_size[1], 1))
 
       train_tensor, summary_op = _train_deeplab_model(
@@ -598,9 +599,16 @@ def main(unused_argv):
             last_layers,
             ignore_missing_vars=True)
 
+      # Validation set variables
+      epoch = 0
+      val_loss_per_epoch = []
+      steps_per_epoch = int(dataset.num_samples / FLAGS.train_batch_size)
+      val_saver = tf.train.Saver(max_to_keep=3)
+
       scaffold = tf.train.Scaffold(
           init_fn=init_fn,
           summary_op=summary_op,
+          saver=val_saver,
       )
 
       stop_hook = tf.train.StopAtStepHook(FLAGS.training_number_of_steps)
@@ -624,41 +632,30 @@ def main(unused_argv):
           while not sess.should_stop():
             step = sess.run(tf.train.get_global_step())
             sess.run([train_tensor])
-            if step % 20 == 0:
+            if step % 20 == 0: #if step % steps_per_epoch == 0:
               print("Current step ", step)
+              print("Epoch", epoch)
               count_validation = 0
-              val_mious = []
               val_losses = []
-              sess.run(init_viterator.initializer)
+              sess.run(viterator.initializer)
               while True:
                 try:
-                  val_element = sess.run(init_next_element)
+                  val_element = sess.run(next_element)
                   val_loss = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
                                   val_label: val_element[common.LABEL]})
                   val_losses.append(val_loss)
                   count_validation += 1
-                  print('  {} [validation] {} {}'.format(count_validation, val_loss, val_element[common.IMAGE_NAME]))
+                  #print('  {} [validation] {} {}'.format(count_validation, val_loss, val_element[common.IMAGE_NAME]))
                 except tf.errors.OutOfRangeError:
                   total_val_loss = sum(val_losses)/len(val_losses)
-                  print('  {} [validation] {}'.format(count_validation, total_val_loss))
+                  val_loss_per_epoch.append(total_val_loss)
+                  print('  {} [validation loss] {}'.format(count_validation, total_val_loss))
                   break
-
-              # validate = True
-              # while validate:
-              #   val_element = sess.run(next_element)
-              #   # val_miou, miou_updates = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
-              #   #                     val_label: val_element[common.LABEL]})
-              #   # val_mious.append(val_miou['miou_1.0'])
-              #   val_loss = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
-              #                       val_label: val_element[common.LABEL]})
-              #   val_losses.append(val_loss)
-              #   count_validation += 1
-              #   if count_validation >= 4:
-              #     #total_val_miou = sum(val_mious)/len(val_mious)
-              #     #print('  {} [validation mIoU] {}'.format(count_validation, total_val_mious))
-              #     total_val_loss = sum(val_losses)/len(val_losses)
-              #     print('  {} [validation] {}'.format(count_validation, total_val_loss))
-              #     validate = False
+              if epoch > 0:
+                  early_stopping(epoch, val_loss_per_epoch, 2, 4)
+                  # Use SessionRunHook to manually save model
+                  #val_saver.save(sess, 'my-model', global_step=epoch)
+              epoch += 1
 
 if __name__ == '__main__':
   flags.mark_flag_as_required('train_logdir')

@@ -52,7 +52,7 @@ TRAIN_CROP_SIZE=256
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
 NUM_ITERATIONS=10000
-python "${WORK_DIR}"/train_old.py \
+python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
   --trainval_split="trainval" \

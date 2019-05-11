@@ -422,17 +422,6 @@ def _train_deeplab_model(iterator, num_of_classes, ignore_label):
 
   return train_tensor, summary_op
 
-def val_tower_loss(iterator, num_of_classes, ignore_label):
-  with tf.name_scope('val_loss') as scope:
-    total_loss = _tower_loss(
-        iterator=iterator,
-        num_of_classes=num_of_classes,
-        ignore_label=ignore_label,
-        scope=scope,
-        reuse_variable=0)
-  total_loss = tf.print(total_loss, [total_loss], 'total val loss :')
-  return total_loss
-
 def _val_miou(dataset, image, label, num_of_classes, ignore_label):
     model_options = common.ModelOptions(
         outputs_to_num_classes={common.OUTPUT_TYPE: dataset.num_of_classes},
@@ -563,9 +552,10 @@ def main(unused_argv):
           should_shuffle=False,
           should_repeat=False)
 
-      viterator = vdataset.get_one_shot_iterator()
+      #viterator = vdataset.get_one_shot_iterator()
+      #next_element = viterator.get_next()
+
       init_viterator = vdataset.get_initializable_iterator()
-      next_element = viterator.get_next()
       init_next_element = init_viterator.get_next()
 
       #image input: Tensor("IteratorGetNext_1:1", shape=(?, 256, 256, 3), dtype=float32)
@@ -628,7 +618,7 @@ def main(unused_argv):
             if step % 20 == 0:
               print("Current step ", step)
               count_validation = 0
-              val_mious = []
+              #val_mious = []
               val_losses = []
               sess.run(init_viterator.initializer)
               while True:
@@ -638,10 +628,10 @@ def main(unused_argv):
                                   val_label: val_element[common.LABEL]})
                   val_losses.append(val_loss)
                   count_validation += 1
-                  print('  {} [validation] {} {}'.format(count_validation, val_loss, val_element[common.IMAGE_NAME]))
+                  #print('  {} [validation] {} {}'.format(count_validation, val_loss, val_element[common.IMAGE_NAME]))
                 except tf.errors.OutOfRangeError:
                   total_val_loss = sum(val_losses)/len(val_losses)
-                  print('  {} [validation] {}'.format(count_validation, total_val_loss))
+                  print('  {} [validation loss] {}'.format(count_validation, total_val_loss))
                   break
 
               # validate = True
