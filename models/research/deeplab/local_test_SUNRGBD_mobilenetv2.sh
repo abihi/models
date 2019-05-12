@@ -31,13 +31,14 @@ TRAIN_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/train"
 EVAL_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/eval"
 VIS_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/vis"
 EXPORT_DIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/export"
+TRAINVAL_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/train/val"
 mkdir -p "${INIT_FOLDER}"
 mkdir -p "${TRAIN_LOGDIR}"
+mkdir -p "${TRAINVAL_LOGDIR}"
 mkdir -p "${EVAL_LOGDIR}"
 mkdir -p "${VIS_LOGDIR}"
 mkdir -p "${EXPORT_DIR}"
 
-# Copy locally the trained checkpoint as the initial checkpoint.
 TF_INIT_ROOT="https://storage.googleapis.com/mobilenet_v2/checkpoints"
 CKPT_NAME="mobilenet_v2_1.0_192"
 TF_INIT_CKPT="mobilenet_v2_1.0_192.tgz"
@@ -51,7 +52,7 @@ SUNRGBD_DATASET="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/tfrecord"
 TRAIN_CROP_SIZE=256
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
-NUM_ITERATIONS=10000
+NUM_ITERATIONS=50
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
@@ -79,7 +80,7 @@ python "${WORK_DIR}"/train.py \
     --dataset="sun_rgbd" \
     --eval_crop_size="${EVIS_CROP_SIZE_X}" \
     --eval_crop_size="${EVIS_CROP_SIZE_Y}" \
-    --checkpoint_dir="${TRAIN_LOGDIR}" \
+    --checkpoint_dir="${TRAINVAL_LOGDIR}" \
     --eval_logdir="${EVAL_LOGDIR}" \
     --dataset_dir="${SUNRGBD_DATASET}" \
     --max_number_of_evaluations=1

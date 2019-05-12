@@ -17,7 +17,7 @@ def evaluate(predictions, groundtruth, input_size):
     count = 0
     for prediction, groundtruth in itertools.izip(predictions, groundtruth):
         org_file  = groundtruth.replace("raw_segmentation", "images", 1)
-        org_file  = org_file.replace("png", "jpg", 1)
+        #org_file  = org_file.replace("png", "jpg", 1)
         org_image = Image.open(cwd+"/"+org_file)
 
         im_pred = Image.open(prediction)
@@ -84,8 +84,8 @@ def evaluate(predictions, groundtruth, input_size):
     mIoU = sum(iou_scores) / len(iou_scores_wall)
     return mIoU_wall, mIoU_floor, mIoU
 
-hallway_predictions = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/predictions/*.png"))
-hallway_groundtruth = sorted(glob.glob("datasets/Bontouch/hallway_dataset_voc/raw_segmentation/*.png"))
+hallway_predictions = sorted(glob.glob("datasets/Bontouch/hallway_dataset/predictions/*.png"))
+hallway_groundtruth = sorted(glob.glob("datasets/Bontouch/hallway_dataset/raw_segmentation/*.png"))
 print "Evaluating hallway segment: "
 mIoU_wall, mIoU_floor, mIoU = evaluate(hallway_predictions, hallway_groundtruth, 257)
 

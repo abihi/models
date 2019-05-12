@@ -505,17 +505,31 @@ def _val_loss(dataset, image, label, num_of_classes, ignore_label):
 
     return total_loss
 
+def get_session(sess):
+    session = sess
+    while type(session).__name__ != 'Session':
+        session = session._sess
+    return session
 
 patience_count = 0
-def early_stopping(epoch, val_loss_per_epoch, min_delta, patience):
+def early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver):
   global patience_count
-  if val_loss_per_epoch[epoch-1] - val_loss_per_epoch[epoch] > min_delta:
+
+  # Reset patience count if current model is better than previous model
+  if (2 + val_loss_per_epoch[epoch-1] ) - val_loss_per_epoch[epoch] > min_delta:
     patience_count = 0
+    # Save the current best model
+    filename = FLAGS.train_logdir + '/val/trainval-model.ckpt-'
+    tf.logging.info('Saving validation checkpoint for epoch %s into %s', str(epoch), filename)
+    saver.save(get_session(sess), filename, global_step=epoch)
   else:
     patience_count += 1
 
+  # Stop training if model has not improved in x epochs
   if patience_count > patience:
-    print("early stopping...")
+    return True
+
+  return False
 
 
 def main(unused_argv):
@@ -599,19 +613,18 @@ def main(unused_argv):
             last_layers,
             ignore_missing_vars=True)
 
+      scaffold = tf.train.Scaffold(
+          init_fn=init_fn,
+          summary_op=summary_op,
+      )
+
+      stop_hook = tf.train.StopAtStepHook(FLAGS.training_number_of_steps)
+
       # Validation set variables
       epoch = 0
       val_loss_per_epoch = []
       steps_per_epoch = int(dataset.num_samples / FLAGS.train_batch_size)
-      val_saver = tf.train.Saver(max_to_keep=3)
-
-      scaffold = tf.train.Scaffold(
-          init_fn=init_fn,
-          summary_op=summary_op,
-          saver=val_saver,
-      )
-
-      stop_hook = tf.train.StopAtStepHook(FLAGS.training_number_of_steps)
+      saver=tf.train.Saver(max_to_keep=1)
 
       profile_dir = FLAGS.profile_logdir
       if profile_dir is not None:
@@ -634,8 +647,8 @@ def main(unused_argv):
             sess.run([train_tensor])
             if step % 20 == 0: #if step % steps_per_epoch == 0:
               print("Current step ", step)
-              print("Epoch", epoch)
               count_validation = 0
+              stop_training = False
               val_losses = []
               sess.run(viterator.initializer)
               while True:
@@ -652,9 +665,12 @@ def main(unused_argv):
                   print('  {} [validation loss] {}'.format(count_validation, total_val_loss))
                   break
               if epoch > 0:
-                  early_stopping(epoch, val_loss_per_epoch, 2, 4)
-                  # Use SessionRunHook to manually save model
-                  #val_saver.save(sess, 'my-model', global_step=epoch)
+                min_delta = 2
+                patience = 4
+                stop_training = early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver)
+              # Stops training if current model val loss is worse than previous model val loss
+              if stop_training:
+                break
               epoch += 1
 
 if __name__ == '__main__':

@@ -26,13 +26,15 @@ cd "${CURRENT_DIR}"
 # Set up the working directories.
 ADE20K_FOLDER="ADE20K"
 EXP_FOLDER="exp/train_on_trainval_set_mobilenetv2"
-INIT_FOLDER="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/init_models"
-TRAIN_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/${EXP_FOLDER}/train"
-EVAL_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/${EXP_FOLDER}/eval"
-VIS_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/${EXP_FOLDER}/vis"
-EXPORT_DIR="${WORK_DIR}/${DATASET_DIR}/${ADE20K_FOLDER}/${EXP_FOLDER}/export"
+INIT_FOLDER="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/init_models"
+TRAIN_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/train"
+EVAL_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/eval"
+VIS_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/vis"
+EXPORT_DIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/export"
+TRAINVAL_LOGDIR="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/${EXP_FOLDER}/train/val"
 mkdir -p "${INIT_FOLDER}"
 mkdir -p "${TRAIN_LOGDIR}"
+mkdir -p "${TRAINVAL_LOGDIR}"
 mkdir -p "${EVAL_LOGDIR}"
 mkdir -p "${VIS_LOGDIR}"
 mkdir -p "${EXPORT_DIR}"
@@ -79,7 +81,7 @@ python "${WORK_DIR}"/train.py \
     --dataset="ade20k" \
     --eval_crop_size="${EVIS_CROP_SIZE}" \
     --eval_crop_size="${EVIS_CROP_SIZE}" \
-    --checkpoint_dir="${TRAIN_LOGDIR}" \
+    --checkpoint_dir="${TRAINVAL_LOGDIR}" \
     --eval_logdir="${EVAL_LOGDIR}" \
     --dataset_dir="${ADE20K_DATASET}" \
     --max_number_of_evaluations=1
