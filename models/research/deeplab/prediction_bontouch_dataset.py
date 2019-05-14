@@ -72,6 +72,9 @@ def predictions(files):
         count += 1
         resized_im, seg_map = MODEL.run(im)
 
+        seg_map[seg_map==[1]] = 0
+        seg_map[seg_map==[2]] = 255
+
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
         seg_image[seg_image==[128,0,0]] = 0
         resized_im = np.asarray(resized_im)
@@ -80,18 +83,20 @@ def predictions(files):
         filename_preds = filename_preds.replace("jpg", "png", 1)
         filename_vis = filename.replace("images", "predictions_vis", 1)
 
-        img_seg=Image.fromarray(seg_map.astype(np.uint8), mode='L')
-        img_seg.save(filename_preds)
-        img_seg.close()
+
 
         background = Image.fromarray(resized_im).convert("RGBA")
         overlay = Image.fromarray(seg_image).convert("RGBA")
 
         width, height = background.size
-        resize_ratio = 1.0 * 1080 / max(width, height)
+        resize_ratio = 1.0 * 1920 / max(width, height)
         target_size = (int(resize_ratio * width), int(resize_ratio * height))
         img_vis = overlay.resize(target_size, Image.ANTIALIAS)#Image.blend(background, overlay, 0.5).resize(target_size, Image.ANTIALIAS)
-        visualize_data.vis_segmentation(resized_im, seg_image, img_vis, 1)
+        #visualize_data.vis_segmentation(resized_im, seg_map, img_vis, 1)
+
+        img_seg=Image.fromarray(seg_map.astype(np.uint8), mode='L').resize(target_size, Image.ANTIALIAS)
+        img_seg.save(filename_preds)
+        img_seg.close()
 
         filename_vis = filename_vis.replace("jpg", "png", 1)
         img_vis.save(filename_vis)

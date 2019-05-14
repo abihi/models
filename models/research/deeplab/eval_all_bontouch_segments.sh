@@ -32,17 +32,17 @@ DININGROOM_DATASET="${BONTOUCH_DIR}/diningroom_dataset/"
 
 cd "${WORK_DIR}"
 
-# echo "Running prediction on Bontouch dataset (AR video)"
-# python prediction_bontouch_dataset.py \
-# --path="${BONTOUCH_DIR}/bon_vid/" \
-# --filetype="png"
-
-echo "Running prediction on Bontouch dataset (Hallway)"
+echo "Running prediction on Bontouch dataset (AR video)"
 python prediction_bontouch_dataset.py \
---path=${HALLWAY_DATASET} \
+--path="${BONTOUCH_DIR}/bontouch_video_final/" \
 --filetype="png"
-echo "Calculating mean intersection over union (Hallway)"
-python eval_bontouch_dataset.py
+
+# echo "Running prediction on Bontouch dataset (Hallway)"
+# python prediction_bontouch_dataset.py \
+# --path=${HALLWAY_DATASET} \
+# --filetype="png"
+# echo "Calculating mean intersection over union (Hallway)"
+# python eval_bontouch_dataset.py
 
 # echo "Running prediction on Bontouch dataset (Aula)"
 # python prediction_bontouch_dataset.py \
