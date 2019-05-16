@@ -89,8 +89,9 @@ _PASCAL_VOC_SEG_INFORMATION = DatasetDescriptor(
 
 _ADE20K_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 20210,  # num of samples in images/training
-        'val': 2000,  # num of samples in images/validation
+        'train': 20010,
+        'trainval': 200,
+        'val': 2000,
     },
     num_classes=151,
     ignore_label=255,
@@ -98,29 +99,31 @@ _ADE20K_INFORMATION = DatasetDescriptor(
 
 _ADE20K_RELABELED_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 20210,
+        'train': 20010,
+        'trainval': 200,
         'val': 2000,
     },
-    num_classes=3,
+    num_classes=4,
     ignore_label=255,
 )
 
 _SUN_RGBD_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 5281,
-        'trainval': 4,
+        'train': 5081,
+        'trainval': 200,
         'val': 5050,
     },
-    num_classes=13,
+    num_classes=14,
     ignore_label=255,
 )
 
 _SUN_RGBD_RELABELED_INFORMATION = DatasetDescriptor(
     splits_to_sizes={
-        'train': 5285,
+        'train': 5081,
+        'trainval': 200,
         'val': 5050,
     },
-    num_classes=3,
+    num_classes=4,
     ignore_label=255,
 )
 

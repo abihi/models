@@ -76,6 +76,8 @@ echo "Converting ADE20K dataset..."
 python ./build_ade20k_data.py  \
   --train_image_folder="${ADE20K_ROOT}/images/training/" \
   --train_image_label_folder="${ADE20K_ROOT}/annotations/training/" \
+  --trainval_image_folder="${WORK_DIR}/images/trainval/" \
+  --trainval_image_label_folder="${WORK_DIR}/annotations/trainval/" \
   --val_image_folder="${ADE20K_ROOT}/images/validation/" \
   --val_image_label_folder="${ADE20K_ROOT}/annotations/validation/" \
   --output_dir="${OUTPUT_DIR}"

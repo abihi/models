@@ -82,13 +82,13 @@ flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
 
 # Use 0.007 when training on PASCAL augmented training set, train_aug. When
 # fine-tuning on PASCAL trainval set, use learning rate=0.0001.
-flags.DEFINE_float('base_learning_rate', .0001,
+flags.DEFINE_float('base_learning_rate', .01,
                    'The base learning rate for model training.')
 
 flags.DEFINE_float('learning_rate_decay_factor', 0.1,
                    'The rate to decay the base learning rate.')
 
-flags.DEFINE_integer('learning_rate_decay_step', 2000,
+flags.DEFINE_integer('learning_rate_decay_step', 5000,
                      'Decay the base learning rate at a fixed step.')
 
 flags.DEFINE_float('learning_power', 0.9,
@@ -516,12 +516,12 @@ def early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver):
   global patience_count
 
   # Reset patience count if current model is better than previous model
-  if (2 + val_loss_per_epoch[epoch-1] ) - val_loss_per_epoch[epoch] > min_delta:
+  if val_loss_per_epoch[epoch-1] - val_loss_per_epoch[epoch] > min_delta:
     patience_count = 0
     # Save the current best model
-    filename = FLAGS.train_logdir + '/val/trainval-model.ckpt-'
+    filename = FLAGS.train_logdir + '/val/trainval-model.ckpt'
     tf.logging.info('Saving validation checkpoint for epoch %s into %s', str(epoch), filename)
-    saver.save(get_session(sess), filename, global_step=epoch)
+    saver.save(get_session(sess), filename)
   else:
     patience_count += 1
 
@@ -641,12 +641,11 @@ def main(unused_argv):
             log_step_count_steps=FLAGS.log_steps,
             save_summaries_steps=FLAGS.save_summaries_secs,
             save_checkpoint_secs=FLAGS.save_interval_secs,
-            hooks=[stop_hook]) as sess:
+            hooks=[]) as sess:
           while not sess.should_stop():
             step = sess.run(tf.train.get_global_step())
             sess.run([train_tensor])
-            if step % 20 == 0: #if step % steps_per_epoch == 0:
-              print("Current step ", step)
+            if step % steps_per_epoch == 0:
               count_validation = 0
               stop_training = False
               val_losses = []
@@ -662,11 +661,12 @@ def main(unused_argv):
                 except tf.errors.OutOfRangeError:
                   total_val_loss = sum(val_losses)/len(val_losses)
                   val_loss_per_epoch.append(total_val_loss)
-                  print('  {} [validation loss] {}'.format(count_validation, total_val_loss))
+                  print('  {} [validation loss] {}'.format(count_validation*FLAGS.train_batch_size, total_val_loss))
+                  print('  {} [current epoch]   {}'.format(step, epoch))
                   break
               if epoch > 0:
-                min_delta = 2
-                patience = 4
+                min_delta = 0.01
+                patience = 16
                 stop_training = early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver)
               # Stops training if current model val loss is worse than previous model val loss
               if stop_training:

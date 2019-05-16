@@ -18,7 +18,7 @@ WORK_DIR="${CURRENT_DIR}/deeplab"
 # Go to datasets folder and download SUNRGBD segmentation dataset.
 DATASET_DIR="datasets"
 cd "${WORK_DIR}/${DATASET_DIR}"
-#sh download_and_convert_sun_rgbd.sh
+sh download_and_convert_sun_rgbd.sh
 
 # Go back to original directory.
 cd "${CURRENT_DIR}"
@@ -52,7 +52,6 @@ SUNRGBD_DATASET="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/tfrecord"
 TRAIN_CROP_SIZE=256
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
-NUM_ITERATIONS=50
 python "${WORK_DIR}"/train.py \
   --logtostderr \
   --train_split="train" \
@@ -62,9 +61,8 @@ python "${WORK_DIR}"/train.py \
   --output_stride=16 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
-  --train_batch_size=1 \
-  --trainval_batch_size=1 \
-  --training_number_of_steps="${NUM_ITERATIONS}" \
+  --train_batch_size=4 \
+  --trainval_batch_size=4 \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
   --fine_tune_batch_norm=false \
@@ -93,13 +91,14 @@ python "${WORK_DIR}"/train.py \
     --dataset="sun_rgbd" \
     --vis_crop_size="${EVIS_CROP_SIZE_X}" \
     --vis_crop_size="${EVIS_CROP_SIZE_Y}" \
-    --checkpoint_dir="${TRAIN_LOGDIR}" \
+    --checkpoint_dir="${TRAINVAL_LOGDIR}" \
     --vis_logdir="${VIS_LOGDIR}" \
     --dataset_dir="${SUNRGBD_DATASET}" \
     --max_number_of_iterations=1
 
   # Export the trained checkpoint.
-  CKPT_PATH="${TRAIN_LOGDIR}/model.ckpt-${NUM_ITERATIONS}"
+
+  CKPT_PATH="${TRAINVAL_LOGDIR}/trainval-model.ckpt"
   EXPORT_PATH="${EXPORT_DIR}/frozen_inference_graph.pb"
 
   python "${WORK_DIR}"/export_model.py \
@@ -107,7 +106,7 @@ python "${WORK_DIR}"/train.py \
     --checkpoint_path="${CKPT_PATH}" \
     --export_path="${EXPORT_PATH}" \
     --model_variant="mobilenet_v2" \
-    --num_classes=13 \
+    --num_classes=14 \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --inference_scales=1.0
