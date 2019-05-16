@@ -461,13 +461,16 @@ def _val_miou(dataset, image, label, num_of_classes, ignore_label):
 
 def _val_loss(dataset, image, label, num_of_classes, ignore_label):
     outputs_to_num_classes = {common.OUTPUT_TYPE: dataset.num_of_classes}
-    model_options = common.ModelOptions(
+    val_summaries = []
+
+    with tf.variable_scope(tf.get_variable_scope(), reuse=True):
+      model_options = common.ModelOptions(
         outputs_to_num_classes=outputs_to_num_classes,
         crop_size=FLAGS.train_crop_size,
         atrous_rates=FLAGS.atrous_rates,
         output_stride=FLAGS.output_stride)
 
-    outputs_to_scales_to_logits = model.multi_scale_logits(
+      outputs_to_scales_to_logits = model.multi_scale_logits(
         image,
         model_options=model_options,
         image_pyramid=FLAGS.image_pyramid,
@@ -479,31 +482,34 @@ def _val_loss(dataset, image, label, num_of_classes, ignore_label):
             'total_training_steps': FLAGS.training_number_of_steps,
         })
 
-    with tf.name_scope('val_loss') as scope:
-      for output, num_classes in six.iteritems(outputs_to_num_classes):
-        train_utils.add_softmax_cross_entropy_loss_for_each_scale(
-            outputs_to_scales_to_logits[output],
-            label,
-            num_classes,
-            ignore_label,
-            loss_weight=1.0,
-            upsample_logits=FLAGS.upsample_logits,
-            hard_example_mining_step=FLAGS.hard_example_mining_step,
-            top_k_percent_pixels=FLAGS.top_k_percent_pixels,
-            scope=scope)
+      with tf.name_scope('val_loss') as scope:
+        for output, num_classes in six.iteritems(outputs_to_num_classes):
+          train_utils.add_softmax_cross_entropy_loss_for_each_scale(
+              outputs_to_scales_to_logits[output],
+              label,
+              num_classes,
+              ignore_label,
+              loss_weight=1.0,
+              upsample_logits=FLAGS.upsample_logits,
+              hard_example_mining_step=FLAGS.hard_example_mining_step,
+              top_k_percent_pixels=FLAGS.top_k_percent_pixels,
+              scope=output)
 
-      losses = tf.losses.get_losses(scope=scope)
-      for loss in losses:
-        tf.summary.scalar('Val losses/%s' % loss.op.name, loss)
 
-      regularization_loss = tf.losses.get_regularization_loss(scope=scope)
-      tf.summary.scalar('Val losses/%s' % regularization_loss.op.name,
-                      regularization_loss)
+        losses = tf.losses.get_losses(scope=scope)
+        for loss in losses:
+          tf.summary.scalar('Val_losses/%s' % loss.op.name, loss)
 
-      total_loss = tf.add_n([tf.add_n(losses), regularization_loss])
-      tf.summary.scalar('total_validation_loss', total_loss)
+        regularization_loss = tf.losses.get_regularization_loss(scope=scope)
+        tf.summary.scalar('Val_losses/%s' % regularization_loss.op.name,
+                          regularization_loss)
 
-    return total_loss
+        total_loss = tf.add_n([tf.add_n(losses), regularization_loss])
+        val_summaries.append(tf.summary.scalar('total_validation_loss', total_loss))
+
+    val_summary_op = tf.summary.merge(val_summaries)
+
+    return total_loss, val_summary_op
 
 def get_session(sess):
     session = sess
@@ -653,8 +659,8 @@ def main(unused_argv):
               while True:
                 try:
                   val_element = sess.run(next_element)
-                  val_loss = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
-                                  val_label: val_element[common.LABEL]})
+                  val_loss, val_summary = sess.run(val_tensor, feed_dict={val_image: val_element[common.IMAGE],
+                                            val_label: val_element[common.LABEL]})
                   val_losses.append(val_loss)
                   count_validation += 1
                   #print('  {} [validation] {} {}'.format(count_validation, val_loss, val_element[common.IMAGE_NAME]))
