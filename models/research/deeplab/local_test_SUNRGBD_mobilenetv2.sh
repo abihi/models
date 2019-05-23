@@ -39,9 +39,14 @@ mkdir -p "${EVAL_LOGDIR}"
 mkdir -p "${VIS_LOGDIR}"
 mkdir -p "${EXPORT_DIR}"
 
+
+#Large: mobilenet_v2_1.4_224
+#Medium-large: mobilenet_v2_1.0_192
+#Medium: mobilenet_v2_0.75_
+#Small: mobilenet_v2_0.35_128
 TF_INIT_ROOT="https://storage.googleapis.com/mobilenet_v2/checkpoints"
-CKPT_NAME="mobilenet_v2_1.0_192"
-TF_INIT_CKPT="mobilenet_v2_1.0_192.tgz"
+CKPT_NAME="mobilenet_v2_1.0_224"
+TF_INIT_CKPT="mobilenet_v2_1.0_224.tgz"
 cd "${INIT_FOLDER}"
 wget -nd -c "${TF_INIT_ROOT}/${TF_INIT_CKPT}"
 tar -xf "${TF_INIT_CKPT}"
@@ -49,7 +54,7 @@ cd "${CURRENT_DIR}"
 
 SUNRGBD_DATASET="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/tfrecord"
 
-TRAIN_CROP_SIZE=256
+TRAIN_CROP_SIZE=257
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
 python "${WORK_DIR}"/train.py \
@@ -58,14 +63,15 @@ python "${WORK_DIR}"/train.py \
   --trainval_split="trainval" \
   --model_variant="mobilenet_v2" \
   --dataset="sun_rgbd" \
-  --output_stride=16 \
+  --output_stride=8 \
+  --depth_multiplier=1.0 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
-  --train_batch_size=4 \
-  --trainval_batch_size=4 \
+  --train_batch_size=16 \
+  --trainval_batch_size=16 \
   --initialize_last_layer=false \
   --last_layers_contain_logits_only=true \
-  --fine_tune_batch_norm=false \
+  --fine_tune_batch_norm=true \
   --tf_initial_checkpoint="${INIT_FOLDER}/${CKPT_NAME}.ckpt" \
   --train_logdir="${TRAIN_LOGDIR}" \
   --dataset_dir="${SUNRGBD_DATASET}"
