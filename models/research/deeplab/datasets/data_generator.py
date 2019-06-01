@@ -123,7 +123,7 @@ _SUN_RGBD_RELABELED_INFORMATION = DatasetDescriptor(
         'trainval': 200,
         'val': 5050,
     },
-    num_classes=4,
+    num_classes=2,
     ignore_label=255,
 )
 

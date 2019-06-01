@@ -1,6 +1,8 @@
 import tarfile
 with tarfile.open('deeplab_model.tar.gz', 'w:gz') as tar:
-  tar.add('trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+  tar.add('datasets/trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb', arcname="frozen_inference_graph.pb")
+#'datasets/trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb'
+#'/home/abihi/mobileNetsV2Models/ade20k_relabel.pb'
 
 import os
 import sys
@@ -72,9 +74,6 @@ def predictions(files):
         count += 1
         resized_im, seg_map = MODEL.run(im)
 
-        seg_map[seg_map==[1]] = 0
-        seg_map[seg_map==[2]] = 255
-
         seg_image = visualize_data.label_to_color_image(seg_map).astype(np.uint8)
         seg_image[seg_image==[128,0,0]] = 0
         resized_im = np.asarray(resized_im)
@@ -83,13 +82,11 @@ def predictions(files):
         filename_preds = filename_preds.replace("jpg", "png", 1)
         filename_vis = filename.replace("images", "predictions_vis", 1)
 
-
-
         background = Image.fromarray(resized_im).convert("RGBA")
         overlay = Image.fromarray(seg_image).convert("RGBA")
 
         width, height = background.size
-        resize_ratio = 1.0 * 1920 / max(width, height)
+        resize_ratio = 1.0 * 257 / max(width, height)
         target_size = (int(resize_ratio * width), int(resize_ratio * height))
         img_vis = overlay.resize(target_size, Image.ANTIALIAS)#Image.blend(background, overlay, 0.5).resize(target_size, Image.ANTIALIAS)
         #visualize_data.vis_segmentation(resized_im, seg_map, img_vis, 1)

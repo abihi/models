@@ -40,10 +40,12 @@ mkdir -p "${VIS_LOGDIR}"
 mkdir -p "${EXPORT_DIR}"
 
 
-#Large: mobilenet_v2_1.4_224
+#Large: https://storage.googleapis.com/mobilenet_v2/checkpoints/mobilenet_v2_1.0_224.tgz
 #Medium-large: mobilenet_v2_1.0_192
-#Medium: mobilenet_v2_0.75_
-#Small: mobilenet_v2_0.35_128
+#Medium: mobilenet_v2_1.0_160
+#Medium-small: mobilenet_v2_1.0_128
+#Small: mobilenet_v2_1.0_96
+#ADE20K pretrained: http://download.tensorflow.org/models/deeplabv3_mnv2_ade20k_train_2018_12_03.tar.gz
 TF_INIT_ROOT="https://storage.googleapis.com/mobilenet_v2/checkpoints"
 CKPT_NAME="mobilenet_v2_1.0_224"
 TF_INIT_CKPT="mobilenet_v2_1.0_224.tgz"
@@ -62,8 +64,8 @@ python "${WORK_DIR}"/train.py \
   --train_split="train" \
   --trainval_split="trainval" \
   --model_variant="mobilenet_v2" \
-  --dataset="sun_rgbd" \
-  --output_stride=8 \
+  --dataset="sun_rgbd_relabeled" \
+  --output_stride=16 \
   --depth_multiplier=1.0 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
@@ -81,10 +83,10 @@ python "${WORK_DIR}"/train.py \
     --logtostderr \
     --eval_split="val" \
     --model_variant="mobilenet_v2" \
-    --dataset="sun_rgbd" \
+    --dataset="sun_rgbd_relabeled" \
     --eval_crop_size="${EVIS_CROP_SIZE_X}" \
     --eval_crop_size="${EVIS_CROP_SIZE_Y}" \
-    --checkpoint_dir="${TRAINVAL_LOGDIR}" \
+    --checkpoint_dir="${TRAIN_LOGDIR}" \
     --eval_logdir="${EVAL_LOGDIR}" \
     --dataset_dir="${SUNRGBD_DATASET}" \
     --max_number_of_evaluations=1
@@ -94,17 +96,17 @@ python "${WORK_DIR}"/train.py \
     --logtostderr \
     --vis_split="val" \
     --model_variant="mobilenet_v2" \
-    --dataset="sun_rgbd" \
+    --dataset="sun_rgbd_relabeled" \
     --vis_crop_size="${EVIS_CROP_SIZE_X}" \
     --vis_crop_size="${EVIS_CROP_SIZE_Y}" \
-    --checkpoint_dir="${TRAINVAL_LOGDIR}" \
+    --checkpoint_dir="${TRAIN_LOGDIR}" \
     --vis_logdir="${VIS_LOGDIR}" \
     --dataset_dir="${SUNRGBD_DATASET}" \
     --max_number_of_iterations=1
 
   # Export the trained checkpoint.
 
-  CKPT_PATH="${TRAINVAL_LOGDIR}/trainval-model.ckpt"
+  CKPT_PATH="${TRAIN_LOGDIR}/model.ckpt-75000"
   EXPORT_PATH="${EXPORT_DIR}/frozen_inference_graph.pb"
 
   python "${WORK_DIR}"/export_model.py \
@@ -112,7 +114,7 @@ python "${WORK_DIR}"/train.py \
     --checkpoint_path="${CKPT_PATH}" \
     --export_path="${EXPORT_PATH}" \
     --model_variant="mobilenet_v2" \
-    --num_classes=14 \
+    --num_classes=2 \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --inference_scales=1.0

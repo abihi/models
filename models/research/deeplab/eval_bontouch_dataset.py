@@ -7,7 +7,12 @@ import itertools
 import os
 
 from datasets import visualize_data
+import tensorflow as tf
 
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+
+flags.DEFINE_string('path', 'datasets/Bontouch/hallway_dataset', 'Dataset folder')
 cwd = os.getcwd()
 
 def evaluate(predictions, groundtruth, input_size):
@@ -17,7 +22,7 @@ def evaluate(predictions, groundtruth, input_size):
     count = 0
     for prediction, groundtruth in itertools.izip(predictions, groundtruth):
         org_file  = groundtruth.replace("raw_segmentation", "images", 1)
-        #org_file  = org_file.replace("png", "jpg", 1)
+        org_file  = org_file.replace("png", "jpg", 1)
         org_image = Image.open(cwd+"/"+org_file)
 
         im_pred = Image.open(prediction)
@@ -26,7 +31,7 @@ def evaluate(predictions, groundtruth, input_size):
 
         # Resize groundtruth image, change target_size to (input_size, input_size) for tflite model
         width, height = im_gt.size
-        resize_ratio = input_size / max(width, height)
+        resize_ratio = 1.0 * input_size / max(width, height)
         target_size = (int(resize_ratio * width), int(resize_ratio * height)) #(input_size, input_size)
         resized_im_gt = im_gt.resize(target_size, Image.ANTIALIAS)
 
@@ -38,8 +43,8 @@ def evaluate(predictions, groundtruth, input_size):
             (resized_im_gt.size[1], resized_im_gt.size[0]))
 
         #Floor and wall indexes
-        w_indx = 1
-        f_indx = 2
+        w_indx = 2
+        f_indx = 1
 
         pred_mat_floor[np.logical_not(pred_mat_floor == f_indx)] = 0
         gt_mat_floor[np.logical_not(gt_mat_floor == 2)] = 0
@@ -65,7 +70,7 @@ def evaluate(predictions, groundtruth, input_size):
             count, len(predictions)))
         sys.stdout.flush()
 
-        # Visualize IoU evaluation
+        #Visualize IoU evaluation
         # if count % 25 == 0:
         #     pred_mat_floor[pred_mat_floor == f_indx] = 128
         #     pred_mat_wall[pred_mat_wall == w_indx] = 235
@@ -81,14 +86,11 @@ def evaluate(predictions, groundtruth, input_size):
     sys.stdout.flush()
     mIoU_wall = sum(iou_scores_wall) / len(iou_scores_wall)
     mIoU_floor= sum(iou_scores_floor) / len(iou_scores_floor)
-    mIoU = sum(iou_scores) / len(iou_scores_wall)
-    return mIoU_wall, mIoU_floor, mIoU
+    return mIoU_wall, mIoU_floor
 
-hallway_predictions = sorted(glob.glob("datasets/Bontouch/hallway_dataset/predictions/*.png"))
-hallway_groundtruth = sorted(glob.glob("datasets/Bontouch/hallway_dataset/raw_segmentation/*.png"))
-print "Evaluating hallway segment: "
-mIoU_wall, mIoU_floor, mIoU = evaluate(hallway_predictions, hallway_groundtruth, 257)
+predictions = sorted(glob.glob(FLAGS.path + "/predictions/*.png"))
+groundtruth = sorted(glob.glob(FLAGS.path + "/raw_segmentation/*.png"))
+mIoU_wall, mIoU_floor = evaluate(predictions, groundtruth, 257)
 
 print "mIoU(wall)=", mIoU_wall
 print "mIoU(floor)=", mIoU_floor
-print "mIoU=", mIoU

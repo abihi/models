@@ -20,10 +20,10 @@ def relabel_images(files, type):
         im_mat=np.asarray(im.getdata(),dtype=np.uint8).reshape((im.size[1],im.size[0]))
         im_vis = np.asarray(im.getdata(),dtype=np.uint8).reshape((im.size[1],im.size[0])) #visualize_data.label_to_color_image(im_mat)
 
-        mask = np.logical_and(im_mat!=12, im_mat!=5)
+        mask = np.logical_and(im_mat!=0, im_mat!=5)
         im_mat[mask] = 0
-        im_mat[im_mat==12] = 1
-        im_mat[im_mat==5] = 2
+        #im_mat[im_mat==12] = 1
+        im_mat[im_mat==5] = 1
 
         im_mat=np.asarray(im_mat,dtype=np.uint8)
         img=Image.fromarray(im_mat,mode='L')
@@ -43,17 +43,22 @@ def relabel_images(files, type):
     sys.stdout.flush()
 
 # Values after converting rgb segmap to grayscale
-# 1 (wall) <- 12
-# 2 (floor) <- 5
+# 2 (wall) <- 12
+# 1 (floor) <- 5
 
 sun_train_dir = cwd + "/SUN_RGBD/annotations/train_relabel"
 sun_test_dir = cwd + "/SUN_RGBD/annotations/test_relabel"
+sun_trainval_dir = cwd + "/SUN_RGBD/annotations/trainval_relabel"
 if(not os.path.isdir(sun_train_dir)):
     os.mkdir(sun_train_dir)
 if(not os.path.isdir(sun_test_dir)):
     os.mkdir(sun_test_dir)
+if(not os.path.isdir(sun_trainval_dir)):
+    os.mkdir(sun_trainval_dir)
 sun_train_files = glob.glob("SUN_RGBD/annotations/train/*.png")
 sun_test_files  = glob.glob("SUN_RGBD/annotations/test/*.png")
+sun_trainval_files  = glob.glob("SUN_RGBD/annotations/trainval/*.png")
 
 relabel_images(sun_train_files, "train")
 relabel_images(sun_test_files, "test")
+relabel_images(sun_trainval_files, "trainval")
