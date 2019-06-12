@@ -5,6 +5,7 @@ import sys
 import glob
 import itertools
 import os
+import matplotlib as mpl
 
 from datasets import visualize_data
 import tensorflow as tf
@@ -15,7 +16,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('path', 'datasets/Bontouch/hallway_dataset', 'Dataset folder')
 cwd = os.getcwd()
 
-def evaluate(predictions, groundtruth, input_size):
+def evaluate(predictions, groundtruth, input_size, vis):
     iou_scores_wall = []
     iou_scores_floor = []
     iou_scores = []
@@ -31,9 +32,11 @@ def evaluate(predictions, groundtruth, input_size):
 
         # Resize groundtruth image, change target_size to (input_size, input_size) for tflite model
         width, height = im_gt.size
-        resize_ratio = 1.0 * input_size / max(width, height)
+        resize_ratio = 1.0 * 1920 / max(width, height)
         target_size = (int(resize_ratio * width), int(resize_ratio * height)) #(input_size, input_size)
+        im_pred = im_pred.resize(target_size, Image.ANTIALIAS)
         resized_im_gt = im_gt.resize(target_size, Image.ANTIALIAS)
+        org_image = org_image.resize(target_size, Image.ANTIALIAS)
 
         pred_mat_floor = np.asarray(im_pred.getdata(), dtype=np.uint8).reshape((im_pred.size[1], im_pred.size[0]))
         gt_mat_floor = np.asarray(resized_im_gt.getdata(), dtype=np.uint8).reshape(
@@ -43,8 +46,8 @@ def evaluate(predictions, groundtruth, input_size):
             (resized_im_gt.size[1], resized_im_gt.size[0]))
 
         #Floor and wall indexes
-        w_indx = 2
-        f_indx = 1
+        w_indx = 1
+        f_indx = 2
 
         pred_mat_floor[np.logical_not(pred_mat_floor == f_indx)] = 0
         gt_mat_floor[np.logical_not(gt_mat_floor == 2)] = 0
@@ -72,16 +75,41 @@ def evaluate(predictions, groundtruth, input_size):
 
         #Visualize IoU evaluation
         # if count % 25 == 0:
-        #     pred_mat_floor[pred_mat_floor == f_indx] = 128
-        #     pred_mat_wall[pred_mat_wall == w_indx] = 235
-        #     gt_mat_floor[gt_mat_floor == 2] = 128
-        #     gt_mat_wall[gt_mat_wall == 1] = 235
-        #     img_pred_wall = Image.fromarray(pred_mat_wall, mode='L')
-        #     img_pred_floor = Image.fromarray(pred_mat_floor, mode='L')
-        #     img_gt_wall = Image.fromarray(gt_mat_wall, mode='L')
-        #     img_gt_floor = Image.fromarray(gt_mat_floor, mode='L')
-        #     visualize_data.vis_segmentation(org_image, img_pred_wall, img_gt_wall, 1)
-        #     visualize_data.vis_segmentation(org_image, img_pred_floor, img_gt_floor, 1)
+        cm_hot = mpl.cm.get_cmap('inferno')
+        pred_mat_floor[pred_mat_floor == f_indx] = 235
+        pred_mat_wall[pred_mat_wall == w_indx] = 128
+        gt_mat_floor[gt_mat_floor == 2] = 235
+        gt_mat_wall[gt_mat_wall == 1] = 128
+        img_pred_wall = Image.fromarray(pred_mat_wall, mode='P')
+        img_pred_floor = Image.fromarray(pred_mat_floor, mode='P')
+        img_gt_wall = Image.fromarray(gt_mat_wall, mode='P')
+        img_gt_floor = Image.fromarray(gt_mat_floor, mode='P')
+        img_gt_wall = cm_hot(np.array(img_gt_wall))
+        img_pred_wall = cm_hot(np.array(img_pred_wall))
+        img_pred_floor = cm_hot(np.array(img_pred_floor))
+        img_gt_wall = np.uint8(img_gt_wall * 255)
+        img_pred_wall = np.uint8(img_pred_wall * 255)
+        img_pred_floor = np.uint8(img_pred_floor * 255)
+        img_pred_floor = Image.fromarray(img_pred_floor)
+        img_gt_wall = Image.fromarray(img_gt_wall)
+        img_pred_wall = Image.fromarray(img_pred_wall)
+
+        width, height = org_image.size
+        resize_ratio_vis = 1.0 * 1920 / max(width, height)
+        target_size_vis = (int(resize_ratio_vis * width), int(resize_ratio_vis * height))
+        img_pred_floor = img_pred_floor.convert('RGB')
+        img_vis = Image.blend(org_image, img_pred_floor, 0.5).resize(target_size_vis, Image.ANTIALIAS)
+
+        # visualize_data.vis_segmentation(img_vis, org_image, img_pred_floor, 1)
+        # visualize_data.vis_segmentation(img_gt_wall, org_image, img_pred_wall, 1)
+        # visualize_data.vis_segmentation(img_pred_wall, org_image, img_gt_wall, 1)
+
+        filename_vis = cwd+"/"+org_file
+        filename_vis = filename_vis.replace("images", "vis", 1)
+        img_vis.save(filename_vis)
+        img_vis.close()
+
+
     sys.stdout.write('\n')
     sys.stdout.flush()
     mIoU_wall = sum(iou_scores_wall) / len(iou_scores_wall)
@@ -90,7 +118,7 @@ def evaluate(predictions, groundtruth, input_size):
 
 predictions = sorted(glob.glob(FLAGS.path + "/predictions/*.png"))
 groundtruth = sorted(glob.glob(FLAGS.path + "/raw_segmentation/*.png"))
-mIoU_wall, mIoU_floor = evaluate(predictions, groundtruth, 257)
+mIoU_wall, mIoU_floor = evaluate(predictions, groundtruth, 257, False)
 
 print "mIoU(wall)=", mIoU_wall
 print "mIoU(floor)=", mIoU_floor

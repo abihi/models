@@ -82,19 +82,19 @@ flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
 
 # Use 0.007 when training on PASCAL augmented training set, train_aug. When
 # fine-tuning on PASCAL trainval set, use learning rate=0.0001.
-flags.DEFINE_float('base_learning_rate', .007,
+flags.DEFINE_float('base_learning_rate', 0.007,
                    'The base learning rate for model training.')
 
 flags.DEFINE_float('learning_rate_decay_factor', 0.1,
                    'The rate to decay the base learning rate.')
 
-flags.DEFINE_integer('learning_rate_decay_step', 10000,
+flags.DEFINE_integer('learning_rate_decay_step', 5000,
                      'Decay the base learning rate at a fixed step.')
 
 flags.DEFINE_float('learning_power', 0.9,
                    'The power value used in the poly learning policy.')
 
-flags.DEFINE_integer('training_number_of_steps', 30000,
+flags.DEFINE_integer('training_number_of_steps', 5000,
                      'The number of steps used for training')
 
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
@@ -518,14 +518,14 @@ def get_session(sess):
     return session
 
 patience_count = 0
-def early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver):
+def early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver, total_val_loss):
   global patience_count
 
   # Reset patience count if current model is better than previous model
   if val_loss_per_epoch[epoch-1] - val_loss_per_epoch[epoch] > min_delta:
     patience_count = 0
     # Save the current best model
-    filename = FLAGS.train_logdir + '/val/trainval-model.ckpt'
+    filename = FLAGS.train_logdir + '/val/' + str(total_val_loss) +'-trainval-model.ckpt'
     tf.logging.info('Saving validation checkpoint for epoch %s into %s', str(epoch), filename)
     saver.save(get_session(sess), filename)
   else:
@@ -672,8 +672,9 @@ def main(unused_argv):
                   break
               if epoch > 0:
                 min_delta = 0.01
-                patience = 16
-                stop_training = early_stopping(epoch, val_loss_per_epoch, min_delta, patience, sess, saver)
+                patience = 8
+                stop_training = early_stopping(epoch, val_loss_per_epoch, min_delta,
+                                              patience, sess, saver, total_val_loss)
               # Stops training if current model val loss is worse than previous model val loss
               if stop_training:
                 break

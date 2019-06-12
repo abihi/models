@@ -56,7 +56,7 @@ cd "${CURRENT_DIR}"
 
 SUNRGBD_DATASET="${WORK_DIR}/${DATASET_DIR}/${SUNRGBD_FOLDER}/tfrecord"
 
-TRAIN_CROP_SIZE=257
+TRAIN_CROP_SIZE=256
 EVIS_CROP_SIZE_X=737
 EVIS_CROP_SIZE_Y=737
 python "${WORK_DIR}"/train.py \
@@ -64,7 +64,7 @@ python "${WORK_DIR}"/train.py \
   --train_split="train" \
   --trainval_split="trainval" \
   --model_variant="mobilenet_v2" \
-  --dataset="sun_rgbd_relabeled" \
+  --dataset="sun_rgbd" \
   --output_stride=16 \
   --depth_multiplier=1.0 \
   --train_crop_size="${TRAIN_CROP_SIZE}" \
@@ -78,12 +78,12 @@ python "${WORK_DIR}"/train.py \
   --train_logdir="${TRAIN_LOGDIR}" \
   --dataset_dir="${SUNRGBD_DATASET}"
 
-  # Run evaluation. This performs eval over the full test set (5050 images)
+  #Run evaluation. This performs eval over the full test set (5050 images)
   python "${WORK_DIR}"/eval_old.py \
     --logtostderr \
     --eval_split="val" \
     --model_variant="mobilenet_v2" \
-    --dataset="sun_rgbd_relabeled" \
+    --dataset="sun_rgbd" \
     --eval_crop_size="${EVIS_CROP_SIZE_X}" \
     --eval_crop_size="${EVIS_CROP_SIZE_Y}" \
     --checkpoint_dir="${TRAIN_LOGDIR}" \
@@ -92,21 +92,20 @@ python "${WORK_DIR}"/train.py \
     --max_number_of_evaluations=1
 
   # Visualize the results.
-  python "${WORK_DIR}"/vis.py \
-    --logtostderr \
-    --vis_split="val" \
-    --model_variant="mobilenet_v2" \
-    --dataset="sun_rgbd_relabeled" \
-    --vis_crop_size="${EVIS_CROP_SIZE_X}" \
-    --vis_crop_size="${EVIS_CROP_SIZE_Y}" \
-    --checkpoint_dir="${TRAIN_LOGDIR}" \
-    --vis_logdir="${VIS_LOGDIR}" \
-    --dataset_dir="${SUNRGBD_DATASET}" \
-    --max_number_of_iterations=1
+  # python "${WORK_DIR}"/vis.py \
+  #   --logtostderr \
+  #   --vis_split="val" \
+  #   --model_variant="mobilenet_v2" \
+  #   --dataset="sun_rgbd_relabeled" \
+  #   --vis_crop_size="${EVIS_CROP_SIZE_X}" \
+  #   --vis_crop_size="${EVIS_CROP_SIZE_Y}" \
+  #   --checkpoint_dir="${TRAIN_LOGDIR}" \
+  #   --vis_logdir="${VIS_LOGDIR}" \
+  #   --dataset_dir="${SUNRGBD_DATASET}" \
+  #   --max_number_of_iterations=1
 
   # Export the trained checkpoint.
-
-  CKPT_PATH="${TRAIN_LOGDIR}/model.ckpt-75000"
+  CKPT_PATH="${TRAIN_LOGDIR}/model.ckpt-20000"
   EXPORT_PATH="${EXPORT_DIR}/frozen_inference_graph.pb"
 
   python "${WORK_DIR}"/export_model.py \
@@ -114,7 +113,7 @@ python "${WORK_DIR}"/train.py \
     --checkpoint_path="${CKPT_PATH}" \
     --export_path="${EXPORT_PATH}" \
     --model_variant="mobilenet_v2" \
-    --num_classes=2 \
+    --num_classes=14 \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --crop_size="${TRAIN_CROP_SIZE}" \
     --inference_scales=1.0

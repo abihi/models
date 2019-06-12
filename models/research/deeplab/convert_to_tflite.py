@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 #graph_def_file = "/home/abihi/tf/models/research/deeplab/trained_models/sunrgbd_relabel_mobilenet/frozen_inference_graph.pb"
-graph_def_file = "/home/abihi/mobileNetsV2Models/32x32frozen_inference_graph.pb"
+graph_def_file = "/home/abihi/mobileNetsV2Models/128x128_SUN_4.pb"
 input_arrays = ["MobilenetV2/MobilenetV2/input"]
 output_arrays = ["ArgMax"]
 shapes = {
@@ -17,4 +17,4 @@ converter.inference_type=tf.float32
 #converter.inference_input_type=tf.uint8
 #converter.quantized_input_stats={"MobilenetV2/MobilenetV2/input": (128,127)}
 tflite_model = converter.convert()
-open("/home/abihi/mobileNetsV2Models/32x32frozen_inference_graph.tflite", "wb").write(tflite_model)
+open("/home/abihi/mobileNetsV2Models/128x128_SUN_4.tflite", "wb").write(tflite_model)
